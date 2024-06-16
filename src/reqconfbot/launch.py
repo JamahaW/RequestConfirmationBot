@@ -113,12 +113,9 @@ async def info_error(ctx, error):
 #     plural = f'{flags.days} days' if flags.days != 1 else f'{flags.days} day'
 #     await ctx.send(f'Banned {flags.member} for {flags.reason!r} (deleted {plural} worth of messages)')
 
-async def is_owner(ctx):
-    return ctx.author.id == 552181548821250072
-
 
 @bot.command(name='eval')
-@commands.check(is_owner)
+@commands.is_owner()
 async def _eval(ctx, *, code):
     """A bad example of an eval command"""
     await ctx.send(eval(code))
