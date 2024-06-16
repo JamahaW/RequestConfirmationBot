@@ -1,7 +1,8 @@
 import random
 
 from discord import Intents, Message, Member, Attachment
-from discord.ext.commands import Bot, Greedy, MemberConverter
+from discord.ext import commands
+from discord.ext.commands import Bot, Greedy, FlagConverter, BadArgument
 
 
 def getConfig(path: str) -> dict[str, str]:
@@ -86,6 +87,41 @@ async def upload(
 # @bot.command()
 # async def delta(ctx, *, member: JoinDistanceConverter):
 #     await ctx.send(f"days: {member.delta().days}")
+
+
+class BanFlags(FlagConverter):
+    member: Member
+    reason: str
+    days: int = 1
+
+
+@bot.command()
+async def info(ctx, *, member: Member):
+    """Tells you some info about the member."""
+    msg = f'{member} joined on {member.joined_at} and has {member.roles} roles.'
+    await ctx.send(msg)
+
+
+@info.error
+async def info_error(ctx, error):
+    if isinstance(error, BadArgument):
+        await ctx.send('I could not find that member...')
+
+
+# @bot.command()
+# async def haban(ctx, *, flags: BanFlags):
+#     plural = f'{flags.days} days' if flags.days != 1 else f'{flags.days} day'
+#     await ctx.send(f'Banned {flags.member} for {flags.reason!r} (deleted {plural} worth of messages)')
+
+async def is_owner(ctx):
+    return ctx.author.id == 552181548821250072
+
+
+@bot.command(name='eval')
+@commands.check(is_owner)
+async def _eval(ctx, *, code):
+    """A bad example of an eval command"""
+    await ctx.send(eval(code))
 
 
 if __name__ == '__main__':
