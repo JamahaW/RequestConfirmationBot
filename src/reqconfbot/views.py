@@ -6,19 +6,18 @@ from discord import ui
 from discord.ui import Select
 
 
-class MyView(ui.View):
+class TestViewButtons2(ui.View):
 
     @ui.button(label="Click me!", style=ButtonStyle.green, emoji="😎")
     async def click_me(self, _, interaction):
         await interaction.response.send_message("You clicked the button!")
 
+    @ui.button(label="ban makoto", style=ButtonStyle.red)
+    async def makoto_ban(self, _, interaction: Interaction):
+        await interaction.response.send_message("makoto bam")
 
-@ui.button(label="ban makoto", style=ButtonStyle.red)
-async def makoto_ban(self, _, interaction: Interaction):
-    await interaction.response.send_message("makoto bam")
 
-
-class ViewSelectMenu(ui.View):
+class TestViewSelectMenu(ui.View):
 
     @ui.button(label="Click", style=ButtonStyle.green)
     async def click_me(self, _, interaction):

@@ -15,8 +15,8 @@ from reqconfbot.customlogger import CustomFileHandler
 from reqconfbot.customlogger import createCustomLogger
 from reqconfbot.customlogger import getLogPath
 from reqconfbot.modals import TestModal
-from reqconfbot.views import MyView
-from reqconfbot.views import ViewSelectMenu
+from reqconfbot.views import TestViewButtons2
+from reqconfbot.views import TestViewSelectMenu
 
 dotenv.load_dotenv(".env")
 __DISCORD_BOT_TOKEN = os.getenv("DISCORD_BOT_TOKEN")
@@ -42,12 +42,12 @@ async def on_message(message: Message):
 
 @bot.slash_command()
 async def button_my_view(ctx):
-    await ctx.respond("This is a button!", view=MyView())
+    await ctx.respond("This is a button!", view=TestViewButtons2())
 
 
 @bot.slash_command()
 async def select_menu_demo(context: ApplicationContext):
-    await context.respond("view", view=ViewSelectMenu())
+    await context.respond("view", view=TestViewSelectMenu())
 
 
 @bot.slash_command()
