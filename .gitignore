@@ -1,3 +1,4 @@
 .idea
 /src/reqconfbot/.env
 **.pyc
+/logs

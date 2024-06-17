@@ -1,27 +1,35 @@
 # USE PYCORD
 
 import os
+from logging import DEBUG
 
 import dotenv
 from discord import ApplicationContext
+from discord import Bot
 from discord import Intents
 from discord import Member
 from discord import Message
 from discord import Option
-from discord.ext.commands import Bot
 
+from reqconfbot.customlogger import CustomFileHandler
+from reqconfbot.customlogger import createCustomLogger
+from reqconfbot.customlogger import getLogPath
 from reqconfbot.modals import TestModal
 from reqconfbot.views import MyView
 from reqconfbot.views import ViewSelectMenu
 
 dotenv.load_dotenv(".env")
-DISCORD_BOT_TOKEN = os.getenv("DISCORD_BOT_TOKEN")
+__DISCORD_BOT_TOKEN = os.getenv("DISCORD_BOT_TOKEN")
+
+logger = createCustomLogger(__name__, CustomFileHandler(getLogPath("../../logs/")), DEBUG, True)
+logger.debug("start!")
+
 bot = Bot("&", intents=(Intents.default().all()))
 
 
 @bot.event
 async def on_ready():
-    print(f"{bot.user.name} запустился и готов к работе!")
+    logger.info(f"{bot.user.name} запустился и готов к работе!")
 
 
 @bot.event
@@ -29,7 +37,7 @@ async def on_message(message: Message):
     if message.author.bot:
         return
 
-    print(f'Получено сообщение! Текст: {message.content}, Сервер: {message.guild}')
+    logger.debug(f'Получено сообщение! Сервер: {message.guild} Текст: {message.content}')
 
 
 @bot.slash_command()
@@ -59,10 +67,10 @@ async def __test(
     await ctx.delete()
 
     for argument in (number, boolean, member, text, choice):
-        print(f'{argument} ({type(argument).__name__})\n')
+        logger.debug(f'{argument} ({type(argument).__name__})\n')
 
 
 if __name__ == '__main__':
-    print("Request Confirmation bot")
-    bot.run(token=DISCORD_BOT_TOKEN)
-    print("stopped")
+    logger.info("Request Confirmation bot")
+    bot.run(token=__DISCORD_BOT_TOKEN)
+    logger.info("stopped")
