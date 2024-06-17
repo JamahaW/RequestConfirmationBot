@@ -1,30 +1,15 @@
 # USE PYCORD
 
-import os
-from logging import DEBUG
-
-import dotenv
 from discord import ApplicationContext
-from discord import Bot
-from discord import Intents
 from discord import Member
 from discord import Message
 from discord import Option
 
-from reqconfbot.customlogger import CustomFileHandler
-from reqconfbot.customlogger import createCustomLogger
-from reqconfbot.customlogger import getLogPath
+from reqconfbot.core import bot
+from reqconfbot.core import logger
 from reqconfbot.modals import TestModal
 from reqconfbot.views import TestViewButtons2
 from reqconfbot.views import TestViewSelectMenu
-
-dotenv.load_dotenv(".env")
-__DISCORD_BOT_TOKEN = os.getenv("DISCORD_BOT_TOKEN")
-
-logger = createCustomLogger(__name__, CustomFileHandler(getLogPath("../../logs/")), DEBUG, True)
-logger.debug("start!")
-
-bot = Bot("&", intents=(Intents.default().all()))
 
 
 @bot.event
@@ -72,5 +57,5 @@ async def __test(
 
 if __name__ == '__main__':
     logger.info("Request Confirmation bot")
-    bot.run(token=__DISCORD_BOT_TOKEN)
+    bot.run()
     logger.info("stopped")

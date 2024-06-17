@@ -15,7 +15,7 @@ from reqconfbot.datetimehelper import datetimeString
 
 
 class CustomFileHandler(FileHandler):
-    MESSAGE_FORMAT: Final[str] = "%(asctime)s:[%(levelname)s]:%(name)s::%(funcName)s:%(lineno)d: %(message)s"
+    MESSAGE_FORMAT: Final[str] = "%(asctime)s:[%(levelname)s]:%(funcName)s:%(lineno)d: %(message)s"
 
     def __init__(self, logfile: str) -> None:
         super().__init__(logfile, mode="w")
