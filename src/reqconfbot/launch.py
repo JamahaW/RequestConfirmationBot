@@ -1,5 +1,3 @@
-# USE PYCORD
-
 from reqconfbot.core import bot
 from reqconfbot.core import logger
 from reqconfbot.events import DiscordBotEventHandler
