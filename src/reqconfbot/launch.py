@@ -1,3 +1,8 @@
+# USE PYCORD
+
+import os
+
+import dotenv
 from discord import ApplicationContext
 from discord import Intents
 from discord import Member
@@ -9,19 +14,9 @@ from reqconfbot.modals import TestModal
 from reqconfbot.views import MyView
 from reqconfbot.views import ViewSelectMenu
 
-
-# USE PYCORD
-
-
-def getConfig(path: str) -> dict[str, str]:
-    import json
-    with open(path, "r") as f:
-        return json.load(f)
-
-
-config = getConfig("A:/Program/Python3/RequestConfirmationBot/env.json")
-
-bot = Bot(config["prefix"], intents=(Intents.default().all()))
+dotenv.load_dotenv(".env")
+DISCORD_BOT_TOKEN = os.getenv("DISCORD_BOT_TOKEN")
+bot = Bot("&", intents=(Intents.default().all()))
 
 
 @bot.event
@@ -69,5 +64,5 @@ async def __test(
 
 if __name__ == '__main__':
     print("Request Confirmation bot")
-    bot.run(token=config['token'])
+    bot.run(token=DISCORD_BOT_TOKEN)
     print("stopped")
