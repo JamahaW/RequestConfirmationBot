@@ -2,6 +2,7 @@ from typing import Any
 from typing import Callable
 from typing import Coroutine
 
+import discord
 from discord import ApplicationContext
 from discord import ButtonStyle
 from discord import Intents
@@ -9,8 +10,10 @@ from discord import Interaction
 from discord import Member
 from discord import Message
 from discord import Option
+from discord import SelectOption
 from discord.ext.commands import Bot
 from discord.ui import Button
+from discord.ui import Select
 from discord.ui import View
 
 
@@ -55,9 +58,40 @@ async def create_button_command(context: ApplicationContext):
     view = View(
         createButton("Зелёный", ButtonStyle.green, button_callback),
         createButton("Блурпул", ButtonStyle.blurple, button_callback),
-        createButton("Красный", ButtonStyle.red, button_callback),
-        timeout=None
+        createButton("Красный", ButtonStyle.red, button_callback)
     )
+
+    await context.respond(view=view)
+
+
+class MyView(View):  # Create a class called MyView that subclasses discord.ui.View
+    @discord.ui.button(label="Click me!", style=ButtonStyle.primary, emoji="😎")  # Create a button with the label "😎 Click me!" with color Blurple
+    async def button_callback(self, button, interaction):
+        await interaction.response.send_message("You clicked the button!")  # Send a message when the button is clicked
+
+
+@bot.slash_command()  # Create a slash command
+async def button_my_view(ctx):
+    await ctx.respond("This is a button!", view=MyView())  # Send a message with our View class that contains the button
+
+
+@bot.slash_command(name='create_select_menu', description='Создает выпадающий список', guild_ids=[830851544093163530])
+async def create_button_command__(context: ApplicationContext):
+    view = View()
+
+    async def select_callback(interaction: Interaction):
+        await interaction.message.edit(content=f'{interaction.user.name} выбрал {interaction.data["values"][0]}')
+
+    select = Select(
+        options=[
+            SelectOption(label='Яблоко', emoji='🍏', default=True),
+            SelectOption(label='Банан', emoji='🍌'),
+            SelectOption(label='Апельсин', emoji='🍊'),
+        ]
+    )
+
+    select.callback = select_callback
+    view.add_item(select)
 
     await context.respond(view=view)
 
