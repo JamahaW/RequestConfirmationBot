@@ -1,20 +1,15 @@
-from typing import Any
-from typing import Callable
-from typing import Coroutine
-
-import discord
 from discord import ApplicationContext
 from discord import ButtonStyle
+from discord import ComponentType
 from discord import Intents
 from discord import Interaction
 from discord import Member
 from discord import Message
 from discord import Option
 from discord import SelectOption
+from discord import ui
 from discord.ext.commands import Bot
-from discord.ui import Button
 from discord.ui import Select
-from discord.ui import View
 
 
 # USE PYCORD
@@ -44,56 +39,37 @@ async def on_message(message: Message):
     print(f'Получено сообщение! Текст: {message.content}, Сервер: {message.guild}')
 
 
-def createButton(name: str, style: ButtonStyle, func: Callable[[Interaction], Coroutine[Any, Any, None]]) -> Button:
-    b = Button(label=name, style=style)
-    b.callback = func
-    return b
-
-
-@bot.slash_command(name='create_button', description='Создает зеленую кнопку')
-async def create_button_command(context: ApplicationContext):
-    async def button_callback(i: Interaction):
-        await i.message.edit(content=f"{i.message.content}\n{i.user.name}")
-
-    view = View(
-        createButton("Зелёный", ButtonStyle.green, button_callback),
-        createButton("Блурпул", ButtonStyle.blurple, button_callback),
-        createButton("Красный", ButtonStyle.red, button_callback)
-    )
-
-    await context.respond(view=view)
-
-
-class MyView(View):  # Create a class called MyView that subclasses discord.ui.View
-    @discord.ui.button(label="Click me!", style=ButtonStyle.primary, emoji="😎")  # Create a button with the label "😎 Click me!" with color Blurple
-    async def button_callback(self, button, interaction):
-        await interaction.response.send_message("You clicked the button!")  # Send a message when the button is clicked
-
-
-@bot.slash_command()  # Create a slash command
+@bot.slash_command()
 async def button_my_view(ctx):
-    await ctx.respond("This is a button!", view=MyView())  # Send a message with our View class that contains the button
+    class MyView(ui.View):
+        @ui.button(label="Click me!", style=ButtonStyle.green, emoji="😎")
+        async def click_me(self, _, interaction):
+            await interaction.response.send_message("You clicked the button!")
+
+        @ui.button(label="ban makoto", style=ButtonStyle.red)
+        async def makoto_ban(self, _, interaction: Interaction):
+            await interaction.response.send_message("makoto bam")
+
+    await ctx.respond("This is a button!", view=MyView())
 
 
-@bot.slash_command(name='create_select_menu', description='Создает выпадающий список', guild_ids=[830851544093163530])
-async def create_button_command__(context: ApplicationContext):
-    view = View()
+@bot.slash_command()
+async def select_menu_demo(context: ApplicationContext):
+    class ViewSelectMenu(ui.View):
+        @ui.button(label="Click", style=ButtonStyle.green)
+        async def click_me(self, _, interaction):
+            await interaction.response.send_message("select")
 
-    async def select_callback(interaction: Interaction):
-        await interaction.message.edit(content=f'{interaction.user.name} выбрал {interaction.data["values"][0]}')
-
-    select = Select(
-        options=[
+        @ui.select(ComponentType.string_select, options=[
             SelectOption(label='Яблоко', emoji='🍏', default=True),
             SelectOption(label='Банан', emoji='🍌'),
             SelectOption(label='Апельсин', emoji='🍊'),
-        ]
-    )
+        ])
+        async def select_callback(self, _: Select, interaction: Interaction):
+            await interaction.response.defer()
+            await interaction.message.edit(content=f'{interaction.user.name} выбрал {interaction.data["values"][0]}')
 
-    select.callback = select_callback
-    view.add_item(select)
-
-    await context.respond(view=view)
+    await context.respond("view", view=ViewSelectMenu())
 
 
 @bot.slash_command(name='test_slash_command')
@@ -109,11 +85,6 @@ async def __test(
 
     for argument in (number, boolean, member, text, choice):
         print(f'{argument} ({type(argument).__name__})\n')
-
-
-@bot.slash_command(name='test', description='Отвечает "Успешный тест!"')
-async def __test(ctx):
-    await ctx.respond('Успешный тест!')
 
 
 if __name__ == '__main__':
