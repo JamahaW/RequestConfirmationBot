@@ -4,7 +4,7 @@ from reqconfbot.core import bot
 from reqconfbot.core import logger
 
 
-class DiscordBotEventHandler:
+class EventHandler:
 
     @staticmethod
     @bot.event

@@ -9,7 +9,7 @@ from reqconfbot.views import TestViewButtons2
 from reqconfbot.views import TestViewSelectMenu
 
 
-class DiscordBotSlashCommandHandler:
+class SlashCommandHandler:
 
     @staticmethod
     @bot.slash_command()
