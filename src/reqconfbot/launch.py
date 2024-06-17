@@ -1,20 +1,13 @@
 from discord import ApplicationContext
-from discord import ButtonStyle
-from discord import Color
-from discord import ComponentType
-from discord import Embed
-from discord import InputTextStyle
 from discord import Intents
-from discord import Interaction
 from discord import Member
 from discord import Message
 from discord import Option
-from discord import SelectOption
-from discord import ui
 from discord.ext.commands import Bot
-from discord.ui import InputText
-from discord.ui import Modal
-from discord.ui import Select
+
+from reqconfbot.modals import TestModal
+from reqconfbot.views import MyView
+from reqconfbot.views import ViewSelectMenu
 
 
 # USE PYCORD
@@ -46,95 +39,16 @@ async def on_message(message: Message):
 
 @bot.slash_command()
 async def button_my_view(ctx):
-    class MyView(ui.View):
-        @ui.button(label="Click me!", style=ButtonStyle.green, emoji="😎")
-        async def click_me(self, _, interaction):
-            await interaction.response.send_message("You clicked the button!")
-
-        @ui.button(label="ban makoto", style=ButtonStyle.red)
-        async def makoto_ban(self, _, interaction: Interaction):
-            await interaction.response.send_message("makoto bam")
-
     await ctx.respond("This is a button!", view=MyView())
 
 
 @bot.slash_command()
 async def select_menu_demo(context: ApplicationContext):
-    class ViewSelectMenu(ui.View):
-
-        @ui.button(label="Click", style=ButtonStyle.green)
-        async def click_me(self, _, interaction):
-            await interaction.response.send_message("select")
-
-        @ui.select(ComponentType.string_select, options=[
-            SelectOption(label='Яблоко', emoji='🍏'),
-            SelectOption(label='Банан', emoji='🍌'),
-            SelectOption(label='Апельсин', emoji='🍊'),
-        ])
-        async def select_callback(self, _: Select, interaction: Interaction):
-            await interaction.response.defer()
-            await interaction.message.edit(content=f'{interaction.user.name} выбрал {interaction.data["values"][0]}')
-
     await context.respond("view", view=ViewSelectMenu())
 
 
 @bot.slash_command()
 async def test_form(context: ApplicationContext):
-    class TestModal(Modal):
-
-        def add(self, inputText: InputText) -> InputText:
-            self.add_item(inputText)
-            return inputText
-
-        def __init__(self, *args, **kwargs):
-            super().__init__(*args, **kwargs)
-
-            self.name = self.add(InputText(
-                label="ввод имя",
-                placeholder="Ваше имя",
-                min_length=3,
-                max_length=20,
-                style=InputTextStyle.singleline
-            ))
-
-            self.desc = self.add(InputText(
-                label="ввод описание",
-                placeholder="Описание",
-                min_length=20,
-                max_length=2000,
-                style=InputTextStyle.long
-            ))
-
-            self.age = self.add(InputText(
-                label="ввод возраст (число)",
-                placeholder="целое положительное число",
-                style=InputTextStyle.short
-            ))
-
-        async def send(self, interaction: Interaction, message: str):
-            text = f"## Заявка от {interaction.user.name}\n{message}"
-
-            embed = Embed(title="Данные пользователя", color=Color.red(), type="rich")
-
-            for field in self.children:
-                embed.add_field(name=field.label, value=field.value, inline=False)
-
-            await interaction.response.send_message(text, embed=embed)
-
-        async def deny(self, interaction: Interaction, error_msg: str):
-            await self.send(interaction, f"Ошибка заполнения формы: {error_msg}")
-
-        async def callback(self, interaction: Interaction):
-            try:
-                if (age := int(self.age.value)) < 0:
-                    await self.deny(interaction, f"Недействительный возраст ({age})")
-                    return
-
-            except ValueError as e:
-                await self.deny(interaction, f"Возраст не был числом ({e})")
-
-            await self.send(interaction, "Отправлена на рассмотрение администрации")
-
     await context.send_modal(TestModal(title="Заявка тест"))
 
 
@@ -156,3 +70,4 @@ async def __test(
 if __name__ == '__main__':
     print("Request Confirmation bot")
     bot.run(token=config['token'])
+    print("stopped")
