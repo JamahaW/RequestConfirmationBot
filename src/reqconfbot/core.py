@@ -4,6 +4,7 @@ from os import getenv
 
 from discord import Bot
 from discord import Intents
+from discord import Message
 
 from reqconfbot.customlogger import CustomFileHandler
 from reqconfbot.customlogger import createCustomLogger
@@ -17,6 +18,15 @@ class CustomDiscordBot(Bot, ABC):
 
     def run(self):
         super().run(token=getenv("DISCORD_BOT_TOKEN"))
+
+    async def on_ready(self):
+        logger.info(f"{bot.user.name} запустился и готов к работе!")
+
+    async def on_message(self, message: Message):
+        if message.author.bot:
+            return
+
+        logger.debug(f'Получено сообщение! Сервер: {message.guild} Текст: {message.content}')
 
 
 envLoad((".env", "public.env"))
