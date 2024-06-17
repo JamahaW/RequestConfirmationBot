@@ -10,8 +10,8 @@ from logging import StreamHandler
 from logging import getLogger
 from typing import Final
 
-from reqconfbot.datetimehelper import TIME_FORMAT
-from reqconfbot.datetimehelper import datetimeString
+from reqconfbot.tools import TIME_FORMAT
+from reqconfbot.tools import datetimeString
 
 
 class CustomFileHandler(FileHandler):

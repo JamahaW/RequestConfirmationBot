@@ -6,13 +6,8 @@ from reqconfbot.slashcommands import DiscordBotSlashCommandHandler
 
 def main():
     logger.info("Request Confirmation bot")
-
-    event_handler = DiscordBotEventHandler()
-    logger.debug(event_handler)
-
-    slash_command_handler = DiscordBotSlashCommandHandler()
-    logger.debug(slash_command_handler)
-
+    logger.debug(DiscordBotEventHandler())
+    logger.debug(DiscordBotSlashCommandHandler())
     bot.run()
     logger.info("stopped")
 
