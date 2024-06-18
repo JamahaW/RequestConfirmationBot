@@ -5,8 +5,11 @@ from discord import Option
 from reqconfbot.core import bot
 from reqconfbot.core import logger
 from reqconfbot.modals import TestModal
+from reqconfbot.views import ConfirmView
+from reqconfbot.views import CounterView
 from reqconfbot.views import TestViewButtons2
 from reqconfbot.views import TestViewSelectMenu
+from reqconfbot.views import TicTacToeView
 
 
 class SlashCommandHandler:
@@ -40,3 +43,31 @@ class SlashCommandHandler:
 
         for argument in (number, boolean, member, text, choice):
             logger.debug(f'{argument} ({type(argument).__name__})\n')
+
+    @staticmethod
+    @bot.slash_command()
+    async def ask(context: ApplicationContext):
+        view = ConfirmView()
+        await context.respond("Продолжить?", view=view)
+        await view.wait()
+
+        if view.confirmed is None:
+            ret = "Время истекло"
+
+        elif view.confirmed:
+            ret = "Подтверждено"
+
+        else:
+            ret = "Отменено"
+
+        await context.send(ret)
+
+    @staticmethod
+    @bot.slash_command()
+    async def counter(context: ApplicationContext):
+        await context.respond(view=CounterView())
+
+    @staticmethod
+    @bot.slash_command()
+    async def tic(context: ApplicationContext):
+        await context.send("Tic Tac Toe: X goes first", view=TicTacToeView(), reference=context.message)
