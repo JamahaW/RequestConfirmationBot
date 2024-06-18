@@ -19,6 +19,16 @@ class SlashCommandHandler:
 
     @staticmethod
     @bot.slash_command()
+    async def test_write(
+            context: ApplicationContext,
+            channel_id: Option(str, required=True),
+            message: Option(str, required=True, default="msg")
+    ):
+        await bot.get_channel(int(channel_id)).send(f"{context.user.name}: {message}")
+        await context.respond("успешно отправлено!")
+
+    @staticmethod
+    @bot.slash_command()
     async def test_slash_command_args(
             context: ApplicationContext,
             number: Option(int, description='Число в диапазоне от 1 до 10', required=True, min_value=1, max_value=10),

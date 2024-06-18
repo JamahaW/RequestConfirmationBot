@@ -1,19 +1,12 @@
 from __future__ import annotations
-from __future__ import annotations
 
-from discord import ButtonStyle
-from discord import ButtonStyle
-from discord import ButtonStyle
 from discord import ButtonStyle
 from discord import Interaction
 from discord.ui import Button
-
 from discord.ui import View
 
 
 class ViewTicTacToe(View):
-    # This tells the IDE or linter that all our children will be TicTacToeButtons.
-    # This is not required.
     children: list[ViewTicTacToe]
     x_id = -1
     o_id = 1
