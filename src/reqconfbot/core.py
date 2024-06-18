@@ -10,7 +10,8 @@ from reqconfbot.customlogger import CustomFileHandler
 from reqconfbot.customlogger import createCustomLogger
 from reqconfbot.customlogger import getLogPath
 from reqconfbot.tools import envLoad
-from reqconfbot.views import PersistentView
+from reqconfbot.views import ViewExamplePersistent
+from reqconfbot.views import ViewFavoriteColorVote
 
 
 class CustomDiscordBot(Bot, ABC):
@@ -25,13 +26,9 @@ class CustomDiscordBot(Bot, ABC):
         logger.info(f"{bot.user.name} запустился и готов к работе!")
 
         if not self.persistent_views_added:
-            # Register the persistent view for listening here.
-            # Note that this does not send the view to any message.
-            # In order to do this you need to first send a message with the View, which is shown below.
-            # If you have the message_id you can also pass it as a keyword argument,
-            # but for this example we don't have one.
-            self.add_view(PersistentView())
             self.persistent_views_added = True
+            self.add_view(ViewFavoriteColorVote())
+            self.add_view(ViewExamplePersistent())
 
     async def on_message(self, message: Message):
         if message.author.bot:

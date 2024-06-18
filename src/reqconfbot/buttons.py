@@ -4,11 +4,11 @@ from discord.ui import Button
 
 
 class CounterButton(Button):
-    def __init__(self, label: str = None, end: int = None):
+    def __init__(self, label: str = None, end: int = None, **kwargs):
         self.__end = end
         self.__label_text = label
         self.__count: int = 0
-        super().__init__(style=ButtonStyle.blurple, label=self.calculateLabel(), custom_id="counter_button")
+        super().__init__(label=self.calculateLabel(), **kwargs)
 
     def calculateLabel(self) -> str:
         if self.__label_text is None:

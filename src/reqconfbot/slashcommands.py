@@ -6,12 +6,13 @@ from discord.ui import View
 from reqconfbot.buttons import CounterButton
 from reqconfbot.core import bot
 from reqconfbot.core import logger
+from reqconfbot.etc import ViewTicTacToe
 from reqconfbot.modals import TestModal
-from reqconfbot.views import PersistentView
 from reqconfbot.views import ViewConfirm
+from reqconfbot.views import ViewExamplePersistent
+from reqconfbot.views import ViewFavoriteColorVote
 from reqconfbot.views import ViewSelectMenuTest
 from reqconfbot.views import ViewTestButtons
-from reqconfbot.views import ViewTicTacToe
 
 
 class SlashCommandHandler:
@@ -43,8 +44,13 @@ class SlashCommandHandler:
 
     @staticmethod
     @bot.slash_command()
-    async def test_view_persistent(ctx: ApplicationContext):
-        await ctx.send("Любимый цвет?", view=PersistentView())
+    async def test_view_persistent(context: ApplicationContext):
+        await context.respond("Любимый цвет?", view=ViewExamplePersistent())
+
+    @staticmethod
+    @bot.slash_command()
+    async def test_view_color_vote(context: ApplicationContext):
+        await context.respond("Голосование за цвет", view=ViewFavoriteColorVote())
 
     @staticmethod
     @bot.slash_command()
