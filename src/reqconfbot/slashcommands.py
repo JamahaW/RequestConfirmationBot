@@ -1,37 +1,24 @@
 from discord import ApplicationContext
 from discord import Member
 from discord import Option
+from discord.ui import View
 
+from reqconfbot.buttons import CounterButton
 from reqconfbot.core import bot
 from reqconfbot.core import logger
 from reqconfbot.modals import TestModal
-from reqconfbot.views import ConfirmView
-from reqconfbot.views import CounterView
-from reqconfbot.views import TestViewButtons2
-from reqconfbot.views import TestViewSelectMenu
-from reqconfbot.views import TicTacToeView
+from reqconfbot.views import PersistentView
+from reqconfbot.views import ViewConfirm
+from reqconfbot.views import ViewSelectMenuTest
+from reqconfbot.views import ViewTestButtons
+from reqconfbot.views import ViewTicTacToe
 
 
 class SlashCommandHandler:
 
     @staticmethod
     @bot.slash_command()
-    async def button_my_view(context: ApplicationContext):
-        await context.respond("This is a button!", view=TestViewButtons2())
-
-    @staticmethod
-    @bot.slash_command()
-    async def select_menu_demo(context: ApplicationContext):
-        await context.respond("view", view=TestViewSelectMenu())
-
-    @staticmethod
-    @bot.slash_command()
-    async def test_form(context: ApplicationContext):
-        await context.send_modal(TestModal(title="Заявка тест"))
-
-    @staticmethod
-    @bot.slash_command(name='test_slash_command')
-    async def __test(
+    async def test_slash_command_args(
             context: ApplicationContext,
             number: Option(int, description='Число в диапазоне от 1 до 10', required=True, min_value=1, max_value=10),
             member: Option(Member, description='Любой участник сервера', required=True),
@@ -46,8 +33,39 @@ class SlashCommandHandler:
 
     @staticmethod
     @bot.slash_command()
-    async def ask(context: ApplicationContext):
-        view = ConfirmView()
+    async def test_view_buttons(context: ApplicationContext):
+        await context.respond("This is a button!", view=ViewTestButtons())
+
+    @staticmethod
+    @bot.slash_command()
+    async def test_view_select(context: ApplicationContext):
+        await context.respond("view", view=ViewSelectMenuTest())
+
+    @staticmethod
+    @bot.slash_command()
+    async def test_view_persistent(ctx: ApplicationContext):
+        await ctx.send("Любимый цвет?", view=PersistentView())
+
+    @staticmethod
+    @bot.slash_command()
+    async def test_modal(context: ApplicationContext):
+        await context.send_modal(TestModal(title="Заявка тест"))
+
+    @staticmethod
+    @bot.slash_command()
+    async def test_button_counter(
+            context: ApplicationContext,
+            counter_text: Option(str, description="Текст счётчика", default=None)
+    ):
+        await context.respond(view=View(
+            CounterButton(counter_text),
+            timeout=None
+        ))
+
+    @staticmethod
+    @bot.slash_command()
+    async def test_etc_ask(context: ApplicationContext):
+        view = ViewConfirm()
         await context.respond("Продолжить?", view=view)
         await view.wait()
 
@@ -64,10 +82,5 @@ class SlashCommandHandler:
 
     @staticmethod
     @bot.slash_command()
-    async def counter(context: ApplicationContext):
-        await context.respond(view=CounterView())
-
-    @staticmethod
-    @bot.slash_command()
-    async def tic(context: ApplicationContext):
-        await context.send("Tic Tac Toe: X goes first", view=TicTacToeView(), reference=context.message)
+    async def test_etc_tic(context: ApplicationContext):
+        await context.send("Tic Tac Toe: X goes first", view=ViewTicTacToe(), reference=context.message)

@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from typing import Optional
 
 from discord import ButtonStyle
@@ -10,7 +12,7 @@ from discord.ui import Select
 from discord.ui import View
 
 
-class TestViewButtons2(View):
+class ViewTestButtons(View):
 
     @ui.button(label="Click me!", style=ButtonStyle.green, emoji="😎")
     async def click_me(self, _, interaction):
@@ -22,7 +24,7 @@ class TestViewButtons2(View):
             "https://sun9-78.userapi.com/impf/3zOKwZaRpDi-FcQQPpUN0BaNMQIMX6g4uaAmWg/y61Uk1-U53Y.jpg?size=604x537&quality=96&sign=4b74013a10c9fd229cc6546f0941444a&type=album")
 
 
-class TestViewSelectMenu(View):
+class ViewSelectMenuTest(View):
 
     @ui.button(label="Click", style=ButtonStyle.green)
     async def click_me(self, _, interaction):
@@ -38,7 +40,7 @@ class TestViewSelectMenu(View):
         await interaction.message.edit(content=f'{interaction.user.name} выбрал {interaction.data["values"][0]}')
 
 
-class ConfirmView(View):
+class ViewConfirm(View):
 
     def __init__(self):
         super().__init__()
@@ -59,69 +61,36 @@ class ConfirmView(View):
         self.__quit(False, button)
 
 
-class CounterView(View):
-    @ui.button(label="0", style=ButtonStyle.red)
-    async def count(self, button: Button, interaction: Interaction):
-        if (number := int(button.label) if button.label else 0) == 10:
-            button.style = ButtonStyle.green
-            button.disabled = True
+class PersistentView(View):
+    def __init__(self):
+        super().__init__(timeout=None)
 
-        button.label = str(number + 1)
+    @ui.button(
+        label="Green",
+        style=ButtonStyle.green,
+        custom_id="persistent_view:green",
+    )
+    async def green(self, button: Button, interaction: Interaction):
+        await interaction.response.send_message("This is green.", ephemeral=True)
 
-        await interaction.response.edit_message(view=self)
+    @ui.button(
+        label="Red", style=ButtonStyle.red, custom_id="persistent_view:red"
+    )
+    async def red(self, button: Button, interaction: Interaction):
+        await interaction.response.send_message("This is red.", ephemeral=True)
 
-
-class TicTacToeButton(Button["TicTacToe"]):
-    def __init__(self, x: int, y: int):
-        super().__init__(style=ButtonStyle.secondary, label="\u200b", row=y)
-        self.x = x
-        self.y = y
-
-    def __update(self, char: str, style: ButtonStyle, current: int) -> str:
-        self.style = style
-        self.label = char
-        self.view.board[self.y][self.x] = current
-        self.view.current_player = -current
-        return f"Ход: {char}"
-
-    async def callback(self, interaction: Interaction):
-        assert self.view is not None
-
-        v: TicTacToeView = self.view
-
-        if v.board[self.y][self.x] != 0:
-            return
-
-        if v.current_player == v.x_id:
-            content = self.__update("X", ButtonStyle.red, v.x_id)
-
-        else:
-            content = self.__update("O", ButtonStyle.blurple, v.o_id)
-
-        self.disabled = True
-        winner = v.check_board_winner()
-
-        if winner is not None:
-            if winner == v.x_id:
-                content = "X won!"
-            elif winner == v.o_id:
-                content = "O won!"
-            else:
-                content = "It's a tie!"
-
-            for child in v.children:
-                child.disabled = True
-
-            v.stop()
-
-        await interaction.response.edit_message(content=content, view=v)
+    @ui.button(
+        label="Grey", style=ButtonStyle.grey, custom_id="persistent_view:grey"
+    )
+    async def grey(self, button: Button, interaction: Interaction):
+        await interaction.response.send_message("This is grey.", ephemeral=True)
 
 
 # This is our actual board View.
-class TicTacToeView(View):
+class ViewTicTacToe(View):
     # This tells the IDE or linter that all our children will be TicTacToeButtons.
     # This is not required.
-    children: list[TicTacToeButton]
+    children: list[ViewTicTacToe]
     x_id = -1
     o_id = 1
     tie_id = 2
@@ -135,9 +104,6 @@ class TicTacToeView(View):
             [0, 0, 0],
         ]
 
-        # Our board is made up of 3 by 3 TicTacToeButtons.
-        # The TicTacToeButton maintains the callbacks and helps steer
-        # the actual game.
         for x in range(3):
             for y in range(3):
                 self.add_item(TicTacToeButton(x, y))
@@ -177,3 +143,49 @@ class TicTacToeView(View):
             return self.tie_id
 
         return None
+
+
+class TicTacToeButton(Button["TicTacToe"]):
+    def __init__(self, x: int, y: int):
+        super().__init__(style=ButtonStyle.secondary, label="\u200b", row=y)
+        self.x = x
+        self.y = y
+
+    def __update(self, char: str, style: ButtonStyle, current: int) -> str:
+        self.style = style
+        self.label = char
+        self.view.board[self.y][self.x] = current
+        self.view.current_player = -current
+        return f"Ход: {char}"
+
+    async def callback(self, interaction: Interaction):
+        assert self.view is not None
+
+        v: ViewTicTacToe = self.view
+
+        if v.board[self.y][self.x] != 0:
+            return
+
+        if v.current_player == v.x_id:
+            content = self.__update("X", ButtonStyle.red, v.x_id)
+
+        else:
+            content = self.__update("O", ButtonStyle.blurple, v.o_id)
+
+        self.disabled = True
+        winner = v.check_board_winner()
+
+        if winner is not None:
+            if winner == v.x_id:
+                content = "X won!"
+            elif winner == v.o_id:
+                content = "O won!"
+            else:
+                content = "It's a tie!"
+
+            for child in v.children:
+                child.disabled = True
+
+            v.stop()
+
+        await interaction.response.edit_message(content=content, view=v)
