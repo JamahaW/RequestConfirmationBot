@@ -1,6 +1,7 @@
 from discord import ApplicationContext
 from discord import Member
 from discord import Option
+from discord import TextChannel
 from discord.ui import View
 
 from reqconfbot.buttons import CounterButton
@@ -21,10 +22,11 @@ class SlashCommandHandler:
     @bot.slash_command()
     async def test_write(
             context: ApplicationContext,
-            channel_id: Option(str, required=True),
+            channel: Option(TextChannel, required=True),
             message: Option(str, required=True, default="msg")
     ):
-        await bot.get_channel(int(channel_id)).send(f"{context.user.name}: {message}")
+        channel: TextChannel
+        await channel.send(f"{context.user.name}: {message}")
         await context.respond("успешно отправлено!")
 
     @staticmethod

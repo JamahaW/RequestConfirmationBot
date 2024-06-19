@@ -1,0 +1,10 @@
+{
+    "12345": {
+        "form_channel_id": null,
+        "main_channel_id": 69
+    },
+    "333": {
+        "form_channel_id": null,
+        "main_channel_id": null
+    }
+}
