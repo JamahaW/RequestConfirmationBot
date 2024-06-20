@@ -1,3 +1,8 @@
+from __future__ import annotations
+
+from typing import Iterable
+from typing import Optional
+
 from discord import ButtonStyle
 from discord import Color
 from discord import Embed
@@ -92,14 +97,6 @@ class ViewSendModalRequest(View):
         await interaction.response.send_modal(modal=ModalNethexForm())
 
 
-"""
-* Ваш будущий ник-нейм внутри сервера
-* На каких серверах подоброго жанра вы играли?
-* Чем планируете заниматься на сервере первым делом или в будущем по развитию?
-* Вы можете дополнить текст для того Мастера, который будет проверять вашу заявку, дополнить её или расписать поподробнее если что-то не поместилось.
-"""
-
-
 class ModalNethexForm(ModalTextBuilder):
 
     def __init__(self):
@@ -140,43 +137,75 @@ class ModalNethexForm(ModalTextBuilder):
         await interaction.respond("Заполните этот опрос, чтобы завершить заявку", ephemeral=True, view=ViewUserVote(self, interaction))
 
 
-"""
-Откуда вы узнали о нашем сервере?
- - Реклама ВКонтакте
- - Реклама на сторонних сервисах
- - Узнал от друзей/компании
+class SelectUserString(Select["ViewUserVote"]):
 
-Какой клиент вы используете?
- - Лицензионный (куплена лицензия майнкрафта)
- - Тлаунчер и другие пиратские лаунчеры
-"""
+    def __init__(self, select: UserSelect, placeholder: str, options: Iterable[SelectOption]):
+        super().__init__(
+            placeholder=placeholder,
+            options=list(options)
+        )
+        self.select = select
+
+    async def callback(self, interaction: Interaction):
+        self.select.value = interaction.data["values"][0]
+        if self.view.selectDone():
+            await self.view.updateParent(button_disable=False)
+
+        await interaction.response.defer(ephemeral=True)
 
 
-class ViewSelectMenuTest(View):
+class ButtonFormSend(Button["ViewUserVote"]):
 
-    @ui.button(label="Click", style=ButtonStyle.green)
-    async def click_me(self, _, interaction):
-        await interaction.response.send_message("select")
+    def __init__(self, label: str):
+        super().__init__(label=label, style=ButtonStyle.green, disabled=True)
 
-    @ui.select(options=[
-        SelectOption(label='Яблоко', emoji='🍏'),
-        SelectOption(label='Банан', emoji='🍌'),
-        SelectOption(label='Апельсин', emoji='🍊'),
-    ])
-    async def select_callback(self, _: Select, interaction: Interaction):
+    async def callback(self, interaction: Interaction):
         await interaction.response.defer()
-        await interaction.message.edit(content=f'{interaction.user.name} выбрал {interaction.data["values"][0]}')
+        await interaction.respond("Ваша заявка была отправлена", ephemeral=True)
+        await self.view.updateParent(button_disable=True)
+        print("заявка")
+
+
+class UserSelect:
+    def __init__(self):
+        self.value: Optional[str] = None
 
 
 class ViewUserVote(View):
+
+    async def updateParent(self, button_disable: bool) -> None:
+        self.button.disabled = button_disable
+        await self.parent_interation.edit(view=self)
+
+    def selectDone(self) -> bool:
+        return None not in (self.select_known.value, self.select_client.value)
 
     def __init__(self, modal: ModalNethexForm, parent_interaction: Interaction) -> None:
         super().__init__()
         self.modal = modal
         self.parent_interation = parent_interaction
 
-    @ui.button(label="Отправить заявку на проверку", style=ButtonStyle.green)
-    async def send_form(self, button: Button, interaction: Interaction):
-        button.disabled = True
-        await self.parent_interation.edit(view=self)
-        await interaction.respond("Ваша заявка была отправлена", ephemeral=True)
+        self.select_client = UserSelect()
+        self.select_known = UserSelect()
+
+        self.add_item(SelectUserString(
+            self.select_known,
+            "Откуда вы узнали о нашем сервере?",
+            (
+                SelectOption(label="Реклама ВКонтакте"),
+                SelectOption(label="Реклама на сторонних сервисах"),
+                SelectOption(label="Узнал от друзей/компании"),
+            )
+        ))
+
+        self.add_item(SelectUserString(
+            self.select_client,
+            "Какой клиент вы используете?",
+            (
+                SelectOption(label="Лицензионный"),
+                SelectOption(label="Пиратский"),
+            )
+        ))
+
+        self.button = ButtonFormSend("Отправить заявку на проверку")
+        self.add_item(self.button)
