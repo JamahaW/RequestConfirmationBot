@@ -2,6 +2,7 @@ from discord import ApplicationContext
 from discord import Member
 from discord import Option
 from discord import TextChannel
+from discord.app_commands.checks import has_permissions
 from discord.ui import View
 
 from reqconfbot.buttons import CounterButton
@@ -14,10 +15,11 @@ from reqconfbot.tools import StringBuilder
 class SlashCommandHandler:
 
     @staticmethod
-    @bot.slash_command(name="forms_output")
+    @bot.slash_command(name="setup")
+    @has_permissions(administrator=True)
     async def set_forms_send_output(
             context: ApplicationContext,
-            channel: Option(TextChannel, required=True, description="Канал для рассмотрения заявок")
+            channel: Option(TextChannel, required=True, description="Настроить канал для рассмотрения заявок")
     ):
         channel: TextChannel
 
@@ -41,6 +43,7 @@ class SlashCommandHandler:
             ).toString(), ephemeral=True)
 
     @staticmethod
+    @has_permissions(administrator=True)
     @bot.slash_command()
     async def send_forms_setup_message(context: ApplicationContext):
         await context.send_modal(ModalFormSetup())

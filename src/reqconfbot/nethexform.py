@@ -7,6 +7,7 @@ from discord import ButtonStyle
 from discord import Color
 from discord import Embed
 from discord import EmbedAuthor
+from discord import EmbedFooter
 from discord import InputTextStyle
 from discord import Interaction
 from discord import SelectOption
@@ -64,7 +65,7 @@ class ModalFormSetup(ModalTextBuilder):
 
     async def callback(self, interaction: Interaction):
         await interaction.response.send_message(
-            embed=EmbedForm(
+            embed=EmbedCreateForm(
                 self.author.value,
                 self.thumbnail_url.value,
                 self.description.value,
@@ -76,7 +77,7 @@ class ModalFormSetup(ModalTextBuilder):
         )
 
 
-class EmbedForm(Embed):
+class EmbedCreateForm(Embed):
 
     def __init__(self, author: str, thumbnail: str, description: str, image: str, **kwargs):
         super().__init__(
@@ -160,10 +161,11 @@ class ButtonFormSend(Button["ViewUserVote"]):
         super().__init__(label=label, style=ButtonStyle.green, disabled=True)
 
     async def callback(self, interaction: Interaction):
-        await interaction.response.defer()
-        await interaction.respond("Ваша заявка была отправлена", ephemeral=True)
         await self.view.updateParent(button_disable=True)
-        print("заявка")
+
+        embed = EmbedUserForm(interaction, self.view)
+
+        await interaction.respond("Ваша заявка была отправлена", ephemeral=True, embed=embed)
 
 
 class UserSelect:
@@ -209,3 +211,27 @@ class ViewUserVote(View):
 
         self.button = ButtonFormSend("Отправить заявку на проверку")
         self.add_item(self.button)
+
+
+class EmbedUserForm(Embed):
+    def __init__(self, parent_interaction: Interaction, user_vote: ViewUserVote):
+        user = parent_interaction.user
+
+        super().__init__(
+            title=f"Заявка {user.name}",
+            color=Color.gold(),
+            author=EmbedAuthor(name=user.display_name, icon_url=user.display_avatar.url),
+            footer=EmbedFooter(f"{user.id}"),
+            thumbnail=user.display_avatar.url
+        )
+
+        modal = user_vote.modal
+
+        self.add_field(name="Никнейм", value=modal.minecraft_nickname.value, inline=True)
+        self.add_field(name="Клиент", value=user_vote.select_client.value, inline=True)
+
+        self.add_field(name="Узнал из", value=user_vote.select_known.value, inline=False)
+        self.add_field(name="Играл на серверах:", value=modal.played_servers.value, inline=False)
+
+        if modal.etc.value is not None:
+            self.add_field(name="Дополнительная информация", value=modal.etc.value, inline=False)
