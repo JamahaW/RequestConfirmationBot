@@ -2,7 +2,7 @@ from discord import ApplicationContext
 from discord import Member
 from discord import Option
 from discord import TextChannel
-from discord.app_commands.checks import has_permissions
+from discord.ext.commands import has_permissions
 from discord.ui import View
 
 from reqconfbot.buttons import CounterButton

@@ -10,6 +10,7 @@ from discord import EmbedAuthor
 from discord import EmbedFooter
 from discord import InputTextStyle
 from discord import Interaction
+from discord import Member
 from discord import SelectOption
 from discord import ui
 from discord.ui import Button
@@ -17,6 +18,8 @@ from discord.ui import InputText
 from discord.ui import Select
 from discord.ui import View
 
+from reqconfbot.jsondatabase import ServerData
+from reqconfbot.jsondatabase import ServerJSONDatabase
 from reqconfbot.modals import ModalTextBuilder
 
 
@@ -89,19 +92,21 @@ class EmbedCreateForm(Embed):
 
 
 class ViewSendModalRequest(View):
+    server_database: ServerJSONDatabase = None
 
     def __init__(self):
         super().__init__(timeout=None)
 
     @ui.button(label="Заполнить", style=ButtonStyle.green, custom_id="ModalFormSetup:view:button")
     async def send_modal(self, _, interaction: Interaction):
-        await interaction.response.send_modal(modal=ModalNethexForm())
+        await interaction.response.send_modal(modal=ModalNethexForm(self.__class__.server_database.get(interaction.guild_id)))
 
 
 class ModalNethexForm(ModalTextBuilder):
 
-    def __init__(self):
+    def __init__(self, server_data: ServerData):
         super().__init__(title="Заявка")
+        self.server_data = server_data
 
         self.minecraft_nickname = self.add(InputText(
             style=InputTextStyle.singleline,
@@ -165,7 +170,9 @@ class ButtonFormSend(Button["ViewUserVote"]):
 
         embed = EmbedUserForm(interaction, self.view)
 
-        await interaction.respond("Ваша заявка была отправлена", ephemeral=True, embed=embed)
+        await interaction.respond("Ваша заявка отправлена администрации и вам в ЛС", ephemeral=True, embed=embed)
+        await interaction.guild.get_channel(self.view.modal.server_data.form_channel_id).send(embed=embed, view=ViewUserForm())
+        await interaction.user.send(embed=embed)
 
 
 class UserSelect:
@@ -209,7 +216,7 @@ class ViewUserVote(View):
             )
         ))
 
-        self.button = ButtonFormSend("Отправить заявку на проверку")
+        self.button = ButtonFormSend("Отправить заявку")
         self.add_item(self.button)
 
 
@@ -218,7 +225,7 @@ class EmbedUserForm(Embed):
         user = parent_interaction.user
 
         super().__init__(
-            title=f"Заявка {user.name}",
+            title=f"Заявка от {user.name}",
             color=Color.gold(),
             author=EmbedAuthor(name=user.display_name, icon_url=user.display_avatar.url),
             footer=EmbedFooter(f"{user.id}"),
@@ -233,5 +240,77 @@ class EmbedUserForm(Embed):
         self.add_field(name="Узнал из", value=user_vote.select_known.value, inline=False)
         self.add_field(name="Играл на серверах:", value=modal.played_servers.value, inline=False)
 
-        if modal.etc.value is not None:
+        if modal.etc.value:
             self.add_field(name="Дополнительная информация", value=modal.etc.value, inline=False)
+
+
+class ButtonUserForm(Button["ViewUserForm"]):
+
+    def __init__(self, label: str, style: ButtonStyle, color: Color, status: str):
+        super().__init__(
+            label=label,
+            custom_id=f"ButtonUserForm:{label}",
+            style=style
+        )
+
+        self.status = status
+        self.color = color
+
+    async def memberProcess(self, interaction: Interaction, member: Member, embed: Embed):
+        await member.send(embed=embed)
+
+    async def callback(self, interaction: Interaction):
+        self.view.disable_all_items()
+
+        e = interaction.message.embeds[0]
+        member = interaction.guild.get_member(int(e.footer.text))
+
+        embed = Embed(
+            color=self.color,
+            title=f"{self.status} ({e.author.name})",
+            thumbnail=e.thumbnail
+        )
+
+        await self.memberProcess(interaction, member, embed)
+        await interaction.edit(view=self.view, embed=embed)
+
+
+class ButtonUserFormDeny(ButtonUserForm):
+
+    def __init__(self):
+        super().__init__(label="Отклонить", style=ButtonStyle.red, color=Color.red(), status="Отклонён")
+
+    async def memberProcess(self, interaction: Interaction, member: Member, embed: Embed):
+        await interaction.response.send_modal(ModalUserFormDeny(member, embed))
+
+
+class ModalUserFormDeny(ModalTextBuilder):
+
+    def __init__(self, member: Member, embed: Embed):
+        super().__init__(title="Указать причину отказа заявки")
+
+        self.reason = self.add(InputText(
+            style=InputTextStyle.singleline,
+            value="Не подходишь",
+            label="Причина",
+            min_length=8,
+            max_length=32
+        ))
+
+        self.member = member
+        self.embed = embed
+
+    async def callback(self, interaction: Interaction):
+        await interaction.response.defer()
+        self.embed.add_field(name="Причина", value=self.reason.value, inline=False)
+        await self.member.send(embed=self.embed)
+
+
+class ViewUserForm(View):
+
+    def __init__(self):
+        super().__init__(
+            ButtonUserForm(label="Принять", style=ButtonStyle.green, color=Color.green(), status="Принят"),
+            ButtonUserFormDeny(),
+            timeout=None
+        )
