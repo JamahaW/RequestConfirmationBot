@@ -5,6 +5,7 @@ from os import getenv
 from discord import Bot
 from discord import Intents
 from discord import Message
+from dotenv import load_dotenv
 
 from reqconfbot.customlogger import CustomFileHandler
 from reqconfbot.customlogger import createCustomLogger
@@ -12,7 +13,6 @@ from reqconfbot.customlogger import getLogPath
 from reqconfbot.jsondatabase import ServerJSONDatabase
 from reqconfbot.nethexform import ViewSendModalRequest
 from reqconfbot.nethexform import ViewUserForm
-from reqconfbot.tools import envLoad
 
 
 class CustomDiscordBot(Bot, ABC):
@@ -20,7 +20,10 @@ class CustomDiscordBot(Bot, ABC):
         super().__init__(getenv("DISCORD_BOT_PREFIX"), intents=Intents.default().all())
         self.__persistent_views_added = False
 
-        self.servers_data = ViewSendModalRequest.server_database = ServerJSONDatabase(getenv("SERVERS_JSON_DATABASE_PATH"))
+        db = ServerJSONDatabase(getenv("SERVERS_JSON_DATABASE_PATH"))
+        self.servers_data = db
+        ViewSendModalRequest.server_database = db
+        ViewUserForm.server_database = db
 
     def run(self):
         super().run(token=getenv("DISCORD_BOT_TOKEN"))
@@ -37,9 +40,11 @@ class CustomDiscordBot(Bot, ABC):
         if message.author.bot:
             return
 
-        logger.debug(f'Получено сообщение! Сервер: {message.guild} Текст: {message.content}')
+        # logger.debug(f'Получено сообщение! Сервер: {message.guild} Текст: {message.content}')
 
 
-envLoad((".env", "public.env"))
+load_dotenv("./reqconfbot/.env")
+load_dotenv("./reqconfbot/public.env")
+
 bot = CustomDiscordBot()
 logger = createCustomLogger(__name__, CustomFileHandler(getLogPath(getenv("LOGGING_RELATIVE_FOLDER"))), DEBUG, True)

@@ -1,22 +1,23 @@
 from __future__ import annotations
 
-from typing import Iterable
-from typing import Optional
+import re
+from typing import Final
 
 from discord import ButtonStyle
 from discord import Color
 from discord import Embed
 from discord import EmbedAuthor
+from discord import EmbedField
 from discord import EmbedFooter
 from discord import InputTextStyle
 from discord import Interaction
 from discord import Member
-from discord import SelectOption
+from discord import TextChannel
+from discord import User
 from discord import ui
 from discord.ui import Button
 from discord.ui import InputText
 from discord.ui import Modal
-from discord.ui import Select
 from discord.ui import View
 
 from reqconfbot.jsondatabase import ServerData
@@ -32,8 +33,9 @@ class ModalTextBuilder(Modal):
 
 class ModalFormSetup(ModalTextBuilder):
 
-    def __init__(self):
+    def __init__(self, channel: TextChannel = None):
         super().__init__(title="Создать новое сообщение отправки заявок")
+        self.channel = channel
 
         self.author = self.add(InputText(
             label="Автор",
@@ -62,7 +64,7 @@ class ModalFormSetup(ModalTextBuilder):
             label="Описание",
             placeholder="В этом поле поддерживаемся MarkDown",
             min_length=20,
-            max_length=500,
+            max_length=1000,
             style=InputTextStyle.long
         ))
 
@@ -74,28 +76,18 @@ class ModalFormSetup(ModalTextBuilder):
         ))
 
     async def callback(self, interaction: Interaction):
-        await interaction.response.send_message(
-            embed=EmbedCreateForm(
-                self.author.value,
-                self.thumbnail_url.value,
-                self.description.value,
-                self.banner_url.value,
+        await interaction.response.defer()
+        await self.channel.send(
+            embed=Embed(
+                author=EmbedAuthor(self.author.value),
+                thumbnail=self.thumbnail_url.value,
+                description=self.description.value,
+                image=self.banner_url.value,
                 title=self.theme.value,
                 color=Color.blurple()
             ),
             view=ViewSendModalRequest()
         )
-
-
-class EmbedCreateForm(Embed):
-
-    def __init__(self, author: str, thumbnail: str, description: str, image: str, **kwargs):
-        super().__init__(
-            author=EmbedAuthor(author),
-            image=image,
-            thumbnail=thumbnail, **kwargs
-        )
-        self.add_field(name="Описание", value=description, inline=False)
 
 
 class ViewSendModalRequest(View):
@@ -106,10 +98,14 @@ class ViewSendModalRequest(View):
 
     @ui.button(label="Заполнить", style=ButtonStyle.green, custom_id="ModalFormSetup:view:button")
     async def send_modal(self, _, interaction: Interaction):
-        await interaction.response.send_modal(modal=ModalNethexForm(self.__class__.server_database.get(interaction.guild_id)))
+        # interaction.response: InteractionResponse
+        await interaction.response.send_modal(
+            ModalNethexForm(self.__class__.server_database.get(interaction.guild_id))
+        )
 
 
 class ModalNethexForm(ModalTextBuilder):
+    MINECRAFT_NICKNAME_PATTERN = r'^[a-zA-Z0-9_]+$'
 
     def __init__(self, server_data: ServerData):
         super().__init__(title="Заявка")
@@ -146,106 +142,47 @@ class ModalNethexForm(ModalTextBuilder):
             required=False
         ))
 
-    async def callback(self, interaction: Interaction):
-        await interaction.respond("Заполните этот опрос, чтобы завершить заявку", ephemeral=True, view=ViewUserVote(self, interaction))
-
-
-class SelectUserString(Select["ViewUserVote"]):
-
-    def __init__(self, select: UserSelect, placeholder: str, options: Iterable[SelectOption]):
-        super().__init__(
-            placeholder=placeholder,
-            options=list(options)
-        )
-        self.select = select
+    @classmethod
+    def minecraftNicknameCheck(cls, nickname: str) -> bool:
+        return re.match(cls.MINECRAFT_NICKNAME_PATTERN, nickname) is not None
 
     async def callback(self, interaction: Interaction):
-        self.select.value = interaction.data["values"][0]
-        if self.view.selectDone():
-            await self.view.updateParent(button_disable=False)
+        if not self.minecraftNicknameCheck(self.minecraft_nickname.value):
+            await interaction.respond(f"`{self.minecraft_nickname.value}` - Такой ник не может быть использован в minecraft!")
+            return
 
-        await interaction.response.defer(ephemeral=True)
-
-
-class ButtonFormSend(Button["ViewUserVote"]):
-
-    def __init__(self, label: str):
-        super().__init__(label=label, style=ButtonStyle.green, disabled=True)
-
-    async def callback(self, interaction: Interaction):
-        await self.view.updateParent(button_disable=True)
-        self.view.disable_all_items()
-
-        embed = EmbedUserForm(interaction, self.view)
-        await interaction.respond("Ваша заявка отправлена администрации и вам в ЛС", ephemeral=True, embed=embed)
-        await interaction.guild.get_channel(self.view.modal.server_data.form_channel_id).send(embed=embed, view=ViewUserForm())
-        await interaction.user.send(embed=embed)
-
-
-class UserSelect:
-    def __init__(self):
-        self.value: Optional[str] = None
-
-
-class ViewUserVote(View):
-
-    async def updateParent(self, button_disable: bool) -> None:
-        self.button.disabled = button_disable
-        await self.parent_interation.edit(view=self)
-
-    def selectDone(self) -> bool:
-        return None not in (self.select_known.value, self.select_client.value)
-
-    def __init__(self, modal: ModalNethexForm, parent_interaction: Interaction) -> None:
-        super().__init__()
-        self.modal = modal
-        self.parent_interation = parent_interaction
-
-        self.select_client = UserSelect()
-        self.select_known = UserSelect()
-
-        self.add_item(SelectUserString(
-            self.select_known,
-            "Откуда вы узнали о нашем сервере?",
-            (
-                SelectOption(label="Реклама ВКонтакте"),
-                SelectOption(label="Реклама на сторонних сервисах"),
-                SelectOption(label="Узнал от друзей/компании"),
-            )
-        ))
-
-        self.add_item(SelectUserString(
-            self.select_client,
-            "Какой клиент вы используете?",
-            (
-                SelectOption(label="Лицензионный"),
-                SelectOption(label="Пиратский"),
-            )
-        ))
-
-        self.button = ButtonFormSend("Отправить заявку")
-        self.add_item(self.button)
+        embed = EmbedUserForm(interaction, self)
+        await interaction.respond("Ваша заявка отправлена администрации и её копия вам в ЛС", ephemeral=True, embed=embed)
+        await interaction.guild.get_channel(self.server_data.form_channel_id).send(embed=embed, view=ViewUserForm())
+        await interaction.user.send(content="# Ваша заявка была отправлена, ожидайте подтверждения", embed=embed)
 
 
 class EmbedUserForm(Embed):
-    def __init__(self, parent_interaction: Interaction, user_vote: ViewUserVote):
+    FOOTER_VALUES_SEPARATOR: Final[str] = ";"
+
+    @classmethod
+    def dumpInFooter(cls, user: User, nickname: str) -> EmbedFooter:
+        return EmbedFooter(text=f"{user.id}{cls.FOOTER_VALUES_SEPARATOR}{nickname}")
+
+    @classmethod
+    def parseFromFooter(cls, footer: EmbedFooter) -> tuple[int, str]:
+        user_id, nickname = footer.text.split(cls.FOOTER_VALUES_SEPARATOR)
+        return int(user_id), nickname
+
+    def __init__(self, parent_interaction: Interaction, modal: ModalNethexForm):
         user = parent_interaction.user
 
         super().__init__(
             title=f"Заявка от {user.name}",
             color=Color.gold(),
             author=EmbedAuthor(name=user.display_name, icon_url=user.display_avatar.url),
-            footer=EmbedFooter(f"{user.id}"),
+            footer=self.dumpInFooter(user, modal.minecraft_nickname.value),
             thumbnail=user.display_avatar.url
         )
 
-        modal = user_vote.modal
-
         self.add_field(name="Никнейм", value=modal.minecraft_nickname.value, inline=True)
-        self.add_field(name="Клиент", value=user_vote.select_client.value, inline=True)
-
-        self.add_field(name="Узнал из", value=user_vote.select_known.value, inline=False)
         self.add_field(name="Играл на серверах:", value=modal.played_servers.value, inline=False)
+        self.add_field(name="Планы на сезон", value=modal.user_plannings.value, inline=False)
 
         if modal.etc.value:
             self.add_field(name="Дополнительная информация", value=modal.etc.value, inline=False)
@@ -263,27 +200,32 @@ class ButtonUserForm(Button["ViewUserForm"]):
         self.status = status
         self.color = color
 
-    async def memberProcess(self, interaction: Interaction, member: Member, embed: Embed):
-        embed.add_field(name="Сервер", value=interaction.guild.name, inline=False)
+    async def memberProcess(self, interaction: Interaction, member: Member, embed: Embed, nickname: str):
+        embed.add_field(name="Сервер", value=interaction.guild.name, inline=True)
         await member.send(embed=embed)
 
-    async def callback(self, interaction: Interaction):
-        if not interaction.user.guild_permissions.administrator:
-            await interaction.respond("Только администраторы могут взаимодействовать с этой кнопкой!", ephemeral=True)
-            return
+        server = self.view.server_database.get(interaction.guild_id)
+        await interaction.guild.get_channel(server.command_send_channel_id).send(
+            content=server.command_on_player_add.replace(server.MINECRAFT_COMMAND_PLAYER_PLACEHOLDER, nickname)
+        )
 
+    async def callback(self, interaction: Interaction):
         self.view.disable_all_items()
 
         e = interaction.message.embeds[0]
-        member = interaction.guild.get_member(int(e.footer.text))
+        member_id, nickname = EmbedUserForm.parseFromFooter(e.footer)
+        member = interaction.guild.get_member(member_id)
 
         embed = Embed(
             color=self.color,
             title=f"{self.status} ({e.author.name})",
-            thumbnail=e.thumbnail
+            thumbnail=e.thumbnail,
+            fields=[
+                EmbedField(name="Ник", value=nickname, inline=True)
+            ]
         )
 
-        await self.memberProcess(interaction, member, embed)
+        await self.memberProcess(interaction, member, embed, nickname)
         await interaction.edit(view=self.view, embed=embed)
 
 
@@ -292,14 +234,14 @@ class ButtonUserFormDeny(ButtonUserForm):
     def __init__(self):
         super().__init__(label="Отклонить", style=ButtonStyle.red, color=Color.red(), status="Отклонён")
 
-    async def memberProcess(self, interaction: Interaction, member: Member, embed: Embed):
-        await interaction.response.send_modal(ModalUserFormDeny(member, embed))
+    async def memberProcess(self, interaction: Interaction, member: Member, embed: Embed, nickname: str):
+        await interaction.response.send_modal(ModalUserFormDeny(member, embed, nickname))
 
 
 class ModalUserFormDeny(ModalTextBuilder):
 
-    def __init__(self, member: Member, embed: Embed):
-        super().__init__(title="Указать причину отказа заявки")
+    def __init__(self, member: Member, embed: Embed, nickname: str):
+        super().__init__(title=f"отказ {nickname}")
 
         self.reason = self.add(InputText(
             style=InputTextStyle.singleline,
@@ -319,6 +261,7 @@ class ModalUserFormDeny(ModalTextBuilder):
 
 
 class ViewUserForm(View):
+    server_database: ServerJSONDatabase = None
 
     def __init__(self):
         super().__init__(

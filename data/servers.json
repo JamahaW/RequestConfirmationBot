@@ -1,8 +1,7 @@
 {
   "1252702836505055314": {
-    "form_channel_id": 1253105478104514681
-  },
-  "830851544093163530": {
-    "form_channel_id": 1253227221527560192
+    "form_channel_id": 1253105478104514681,
+    "command_send_channel_id": 1253413795045314620,
+    "command_on_player_add": "/op *"
   }
 }
