@@ -4,8 +4,11 @@ from discord import Embed
 from discord import EmbedAuthor
 from discord import InputTextStyle
 from discord import Interaction
+from discord import SelectOption
 from discord import ui
+from discord.ui import Button
 from discord.ui import InputText
+from discord.ui import Select
 from discord.ui import View
 
 from reqconfbot.modals import ModalTextBuilder
@@ -94,15 +97,6 @@ class ViewSendModalRequest(View):
 * На каких серверах подоброго жанра вы играли?
 * Чем планируете заниматься на сервере первым делом или в будущем по развитию?
 * Вы можете дополнить текст для того Мастера, который будет проверять вашу заявку, дополнить её или расписать поподробнее если что-то не поместилось.
-
-Откуда вы узнали о нашем сервере?
- - Реклама ВКонтакте
- - Реклама на сторонних сервисах
- - Узнал от друзей/компании
-
-Какой клиент вы используете?
- - Лицензионный (куплена лицензия майнкрафта)
- - Тлаунчер и другие пиратские лаунчеры
 """
 
 
@@ -127,7 +121,7 @@ class ModalNethexForm(ModalTextBuilder):
             max_length=200
         ))
 
-        self.player_plannings = self.add(InputText(
+        self.user_plannings = self.add(InputText(
             style=InputTextStyle.multiline,
             label="Чем планируете заниматься на сервере?",
             placeholder="Сформулируйте несколько целей или занятий",
@@ -143,4 +137,46 @@ class ModalNethexForm(ModalTextBuilder):
         ))
 
     async def callback(self, interaction: Interaction):
-        await interaction.respond("ok", ephemeral=True)
+        await interaction.respond("Заполните этот опрос, чтобы завершить заявку", ephemeral=True, view=ViewUserVote(self, interaction))
+
+
+"""
+Откуда вы узнали о нашем сервере?
+ - Реклама ВКонтакте
+ - Реклама на сторонних сервисах
+ - Узнал от друзей/компании
+
+Какой клиент вы используете?
+ - Лицензионный (куплена лицензия майнкрафта)
+ - Тлаунчер и другие пиратские лаунчеры
+"""
+
+
+class ViewSelectMenuTest(View):
+
+    @ui.button(label="Click", style=ButtonStyle.green)
+    async def click_me(self, _, interaction):
+        await interaction.response.send_message("select")
+
+    @ui.select(options=[
+        SelectOption(label='Яблоко', emoji='🍏'),
+        SelectOption(label='Банан', emoji='🍌'),
+        SelectOption(label='Апельсин', emoji='🍊'),
+    ])
+    async def select_callback(self, _: Select, interaction: Interaction):
+        await interaction.response.defer()
+        await interaction.message.edit(content=f'{interaction.user.name} выбрал {interaction.data["values"][0]}')
+
+
+class ViewUserVote(View):
+
+    def __init__(self, modal: ModalNethexForm, parent_interaction: Interaction) -> None:
+        super().__init__()
+        self.modal = modal
+        self.parent_interation = parent_interaction
+
+    @ui.button(label="Отправить заявку на проверку", style=ButtonStyle.green)
+    async def send_form(self, button: Button, interaction: Interaction):
+        button.disabled = True
+        await self.parent_interation.edit(view=self)
+        await interaction.respond("Ваша заявка была отправлена", ephemeral=True)
