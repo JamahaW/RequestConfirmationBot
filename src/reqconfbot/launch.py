@@ -11,6 +11,9 @@ from reqconfbot.tools import ErrorsTyper
 from reqconfbot.tools import StringBuilder
 
 
+# TODO cooldown для задержек между заявками
+# TODO редактирование мастер-формы
+
 def launchBot():
     logger.info("Request Confirmation bot")
     bot.run()
@@ -19,10 +22,7 @@ def launchBot():
 
 @bot.slash_command(name="form_master", description="Отправляет в данный текстовый канал настраиваемое сообщение с кнопок для отправки заявок")
 @has_permissions(administrator=True)
-async def __send_forms_setup_message(
-        context: ApplicationContext,
-        channel: TextChannel
-):
+async def __send_forms_setup_message(context: ApplicationContext):
     err = ErrorsTyper("Не удалось отправить мастер-форм, попробуйте сделать следующие шаги:")
     server_data = bot.servers_data.get(context.guild_id)
 
@@ -39,7 +39,7 @@ async def __send_forms_setup_message(
         await context.respond(str(err), ephemeral=True)
         return
 
-    await context.send_modal(ModalFormSetup(channel))
+    await context.send_modal(ModalFormSetup())
 
 
 @bot.slash_command(name="info")

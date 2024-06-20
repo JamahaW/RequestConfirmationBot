@@ -12,7 +12,6 @@ from discord import EmbedFooter
 from discord import InputTextStyle
 from discord import Interaction
 from discord import Member
-from discord import TextChannel
 from discord import User
 from discord import ui
 from discord.ui import Button
@@ -33,9 +32,8 @@ class ModalTextBuilder(Modal):
 
 class ModalFormSetup(ModalTextBuilder):
 
-    def __init__(self, channel: TextChannel = None):
+    def __init__(self):
         super().__init__(title="Создать новое сообщение отправки заявок")
-        self.channel = channel
 
         self.author = self.add(InputText(
             label="Автор",
@@ -76,8 +74,7 @@ class ModalFormSetup(ModalTextBuilder):
         ))
 
     async def callback(self, interaction: Interaction):
-        await interaction.response.defer()
-        await self.channel.send(
+        await interaction.response.send_message(
             embed=Embed(
                 author=EmbedAuthor(self.author.value),
                 thumbnail=self.thumbnail_url.value,
