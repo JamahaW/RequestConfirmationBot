@@ -82,6 +82,7 @@ async def __set_minecraft_command_on_player_add(
     await context.respond(f"Теперь добавления игроков используется команда вида\n```{command_value}```", ephemeral=True)
 
 
+# FIXME Дублирование кода
 @bot.slash_command(name="commands_output")
 @has_permissions(administrator=True)
 async def __set_commands_output(

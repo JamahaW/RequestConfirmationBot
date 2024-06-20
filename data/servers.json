@@ -2,6 +2,11 @@
   "1252702836505055314": {
     "form_channel_id": 1253105478104514681,
     "command_send_channel_id": 1253413795045314620,
-    "command_on_player_add": "/op *"
+    "command_on_player_add": "/ban *"
+  },
+  "830851544093163530": {
+    "form_channel_id": 1253227221527560192,
+    "command_send_channel_id": 830851544529240147,
+    "command_on_player_add": "/whitelist add *"
   }
 }

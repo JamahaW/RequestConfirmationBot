@@ -40,8 +40,6 @@ class CustomDiscordBot(Bot, ABC):
         if message.author.bot:
             return
 
-        # logger.debug(f'Получено сообщение! Сервер: {message.guild} Текст: {message.content}')
-
 
 load_dotenv("./reqconfbot/.env")
 load_dotenv("./reqconfbot/public.env")

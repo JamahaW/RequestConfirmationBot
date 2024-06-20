@@ -51,9 +51,6 @@ class ServerData:
     def __writeKey(self) -> str:
         return f"{self.server_id}"
 
-    def __repr__(self) -> str:
-        return f"ServerData@{self.server_id}(form#{self.form_channel_id})"
-
 
 class ServerJSONDatabase:
 
