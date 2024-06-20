@@ -10,9 +10,8 @@ from reqconfbot.customlogger import CustomFileHandler
 from reqconfbot.customlogger import createCustomLogger
 from reqconfbot.customlogger import getLogPath
 from reqconfbot.jsondatabase import ServerJSONDatabase
+from reqconfbot.nethexform import ViewSendModalRequest
 from reqconfbot.tools import envLoad
-from reqconfbot.views import ViewExamplePersistent
-from reqconfbot.views import ViewFavoriteColorVote
 
 
 class CustomDiscordBot(Bot, ABC):
@@ -30,8 +29,7 @@ class CustomDiscordBot(Bot, ABC):
 
         if not self.persistent_views_added:
             self.persistent_views_added = True
-            self.add_view(ViewFavoriteColorVote())
-            self.add_view(ViewExamplePersistent())
+            self.add_view(ViewSendModalRequest())
 
     async def on_message(self, message: Message):
         if message.author.bot:
