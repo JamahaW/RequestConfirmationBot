@@ -15,12 +15,19 @@ from discord import SelectOption
 from discord import ui
 from discord.ui import Button
 from discord.ui import InputText
+from discord.ui import Modal
 from discord.ui import Select
 from discord.ui import View
 
 from reqconfbot.jsondatabase import ServerData
 from reqconfbot.jsondatabase import ServerJSONDatabase
-from reqconfbot.modals import ModalTextBuilder
+
+
+class ModalTextBuilder(Modal):
+
+    def add(self, inputText: InputText) -> InputText:
+        self.add_item(inputText)
+        return inputText
 
 
 class ModalFormSetup(ModalTextBuilder):
@@ -110,7 +117,7 @@ class ModalNethexForm(ModalTextBuilder):
 
         self.minecraft_nickname = self.add(InputText(
             style=InputTextStyle.singleline,
-            label="Ваш ник-нейм в майнкрафт",
+            label="Ваш ник в майнкрафт",
             placeholder="(Без пробелов, только латинские буквы и '_')",
             min_length=3,
             max_length=16
@@ -167,9 +174,9 @@ class ButtonFormSend(Button["ViewUserVote"]):
 
     async def callback(self, interaction: Interaction):
         await self.view.updateParent(button_disable=True)
+        self.view.disable_all_items()
 
         embed = EmbedUserForm(interaction, self.view)
-
         await interaction.respond("Ваша заявка отправлена администрации и вам в ЛС", ephemeral=True, embed=embed)
         await interaction.guild.get_channel(self.view.modal.server_data.form_channel_id).send(embed=embed, view=ViewUserForm())
         await interaction.user.send(embed=embed)
@@ -257,9 +264,14 @@ class ButtonUserForm(Button["ViewUserForm"]):
         self.color = color
 
     async def memberProcess(self, interaction: Interaction, member: Member, embed: Embed):
+        embed.add_field(name="Сервер", value=interaction.guild.name, inline=False)
         await member.send(embed=embed)
 
     async def callback(self, interaction: Interaction):
+        if not interaction.user.guild_permissions.administrator:
+            await interaction.respond("Только администраторы могут взаимодействовать с этой кнопкой!", ephemeral=True)
+            return
+
         self.view.disable_all_items()
 
         e = interaction.message.embeds[0]
