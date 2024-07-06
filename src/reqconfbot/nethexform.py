@@ -7,7 +7,6 @@ from discord import ButtonStyle
 from discord import Color
 from discord import Embed
 from discord import EmbedAuthor
-from discord import EmbedField
 from discord import EmbedFooter
 from discord import InputTextStyle
 from discord import Interaction
@@ -217,9 +216,7 @@ class ButtonUserForm(Button["ViewUserForm"]):
             color=self.color,
             title=f"{self.status} ({e.author.name})",
             thumbnail=e.thumbnail,
-            fields=[
-                EmbedField(name="Ник", value=nickname, inline=True)
-            ]
+            fields=e.fields
         )
 
         await self.memberProcess(interaction, member, embed, nickname)

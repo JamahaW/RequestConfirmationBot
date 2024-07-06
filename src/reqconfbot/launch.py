@@ -11,9 +11,6 @@ from reqconfbot.tools import ErrorsTyper
 from reqconfbot.tools import StringBuilder
 
 
-# TODO cooldown для задержек между заявками
-# TODO редактирование мастер-формы
-
 def launchBot():
     logger.info("Request Confirmation bot")
     bot.run()
@@ -68,9 +65,6 @@ async def __set_minecraft_command_on_player_add(
 
     if (p := ServerData.MINECRAFT_COMMAND_PLAYER_PLACEHOLDER) not in command_value:
         err.add(f"Команда должна содержать не менее одного {p} для замены на ник игрока")
-
-    if command_value[0] != "/":
-        err.add(f"Возможно вы хотели ввести команду, но забыли '/' в начале строки.")
 
     if err.isFailed():
         await context.respond(str(err), ephemeral=True)

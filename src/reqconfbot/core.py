@@ -42,7 +42,6 @@ class CustomDiscordBot(Bot, ABC):
 
 
 load_dotenv("./reqconfbot/.env")
-load_dotenv("./reqconfbot/public.env")
 
 bot = CustomDiscordBot()
 logger = createCustomLogger(__name__, CustomFileHandler(getLogPath(getenv("LOGGING_RELATIVE_FOLDER"))), DEBUG, True)
