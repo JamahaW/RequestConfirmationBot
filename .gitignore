@@ -1,5 +1,5 @@
 .idea/
-/src/reqconfbot/.env
+/src/.env
 **.pyc
 logs/
 **/__pycache__/
