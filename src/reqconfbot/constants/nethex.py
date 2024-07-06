@@ -4,14 +4,17 @@ class NethexForm:
     EMBED_FIELD_SERVERS_PLAYED_ON = "Играл на серверах:"
     EMBED_FIELD_SEASON_PLANNINGS = "Планы на сезон"
     EMBED_FIELD_INFO = "Дополнительная информация"
+
     APPLY_BUTTON_LABEL = "Принять"
     APPLY_BUTTON_STATUS = "Принят"
+
     DENY_MODAL_TITLE = "отказ {0}"
     DENY_MODAL_VALUE = "Не подходишь"
     DENY_MODAL_LABEL = "Причина"
     DENY_EMBED_FIELD_DENY_REASON = "Причина отказа"
     DENY_BUTTON_TITLE = "Отклонить"
     DENY_BUTTON_STATUS = "Отклонён"
+
     MODAL_TITLE = "Заявка"
     MODAL_MINECRAFT_NICKNAME_LABEL = "Ваш ник в майнкрафт"
     MODAL_MINECRAFT_NICKNAME_PLACEHOLDER = "(Без пробелов, только латинские буквы и '_')"

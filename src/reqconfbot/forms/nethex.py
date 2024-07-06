@@ -24,6 +24,28 @@ from reqconfbot.constants.nethex import NethexForm
 from reqconfbot.forms import ModalTextBuilder
 
 
+class CreatePanelEmbed(Embed):
+    def __init__(self, createPanelModal: CreatePanelModal):
+        super().__init__(
+            author=EmbedAuthor(createPanelModal.author.value),
+            thumbnail=createPanelModal.thumbnail_url.value,
+            description=createPanelModal.description.value,
+            image=createPanelModal.banner_url.value,
+            title=createPanelModal.theme.value,
+            color=Color.gold()
+        )
+
+
+class CreatePanelView(View):
+
+    def __init__(self):
+        super().__init__(timeout=None)
+
+    @ui.button(label=CreatePanel.VIEW_BUTTON_LABEL, style=ButtonStyle.green, custom_id="ViewSendModalRequest:view:button")
+    async def send_modal(self, _, interaction: Interaction):
+        await interaction.response.send_modal(NethexFormModal(interaction.guild_id))
+
+
 class CreatePanelModal(ModalTextBuilder):
 
     def __init__(self):
@@ -69,26 +91,9 @@ class CreatePanelModal(ModalTextBuilder):
 
     async def callback(self, interaction: Interaction):
         await interaction.response.send_message(
-            embed=Embed(
-                author=EmbedAuthor(self.author.value),
-                thumbnail=self.thumbnail_url.value,
-                description=self.description.value,
-                image=self.banner_url.value,
-                title=self.theme.value,
-                color=Color.blurple()
-            ),
+            embed=CreatePanelEmbed(self),
             view=CreatePanelView()
         )
-
-
-class CreatePanelView(View):
-
-    def __init__(self):
-        super().__init__(timeout=None)
-
-    @ui.button(label=CreatePanel.VIEW_BUTTON_LABEL, style=ButtonStyle.green, custom_id="ViewSendModalRequest:view:button")
-    async def send_modal(self, _, interaction: Interaction):
-        await interaction.response.send_modal(NethexFormModal(interaction.guild_id))
 
 
 class NethexFormEmbed(Embed):
@@ -124,12 +129,7 @@ class NethexFormEmbed(Embed):
 class NethexFormButton(Button["ViewUserForm"], ABC):
 
     def __init__(self, label: str, style: ButtonStyle, color: Color, status: str):
-        super().__init__(
-            label=label,
-            custom_id=f"ButtonUserForm:{label}",
-            style=style
-        )
-
+        super().__init__(label=label, custom_id=f"ButtonUserForm:{label}", style=style)
         self.status = status
         self.color = color
 
@@ -139,20 +139,23 @@ class NethexFormButton(Button["ViewUserForm"], ABC):
 
     async def callback(self, interaction: Interaction):
         self.view.disable_all_items()
+        embed = interaction.message.embeds[0]
+        await self.updateEmbedStatus(embed)
 
-        e = interaction.message.embeds[0]
-        member_id, nickname = NethexFormEmbed.parseFromFooter(e.footer)
-        member = interaction.guild.get_member(member_id)
-
-        embed = Embed(
-            color=self.color,
-            title=f"{self.status} ({e.author.name})",
-            thumbnail=e.thumbnail,
-            fields=e.fields
-        )
-
+        member, nickname = await self.getMemberAndNickname(embed, interaction)
         await self.memberProcess(interaction, member, embed, nickname)
         await interaction.edit(view=self.view, embed=embed)
+
+    async def updateEmbedStatus(self, embed):
+        embed.title = f"{self.status} ({embed.author.name})"
+
+    @staticmethod
+    async def getMemberAndNickname(embed, interaction):
+        member_id, nickname = NethexFormEmbed.parseFromFooter(embed.footer)
+        return (
+            interaction.guild.get_member(member_id),
+            nickname
+        )
 
 
 class NethexFormApplyButtonButton(NethexFormButton):
@@ -160,13 +163,14 @@ class NethexFormApplyButtonButton(NethexFormButton):
         super().__init__(label=NethexForm.APPLY_BUTTON_LABEL, style=ButtonStyle.green, color=Color.green(), status=NethexForm.APPLY_BUTTON_STATUS)
 
     async def memberProcess(self, interaction: Interaction, member: Member, embed: Embed, nickname: str):
-        from reqconfbot.cogs.nethex import NethexCog
-
         embed.add_field(name="Сервер", value=interaction.guild.name, inline=True)
         await member.send(embed=embed)
+        await self.sendCommands(interaction, member, nickname)
 
+    @staticmethod
+    async def sendCommands(interaction, member, nickname):
+        from reqconfbot.cogs.nethex import NethexCog
         server_data = NethexCog.database.get(interaction.guild_id)
-
         for cmd in server_data.getFormattedCommands(nickname, member.id):
             await interaction.guild.get_channel(server_data.minecraft_commands_channel_id).send(content=cmd)
 

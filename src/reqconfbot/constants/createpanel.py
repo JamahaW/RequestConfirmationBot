@@ -1,5 +1,4 @@
 class CreatePanel:
-    VIEW_BUTTON_LABEL = "Заполнить"
     MODAL_TITLE = "Создать новое сообщение отправки заявок"
     MODAL_AUTHOR_LABEL = "Автор"
     MODAL_AUTHOR_PLACEHOLDER = "Команда любителей занавесок"
@@ -11,3 +10,5 @@ class CreatePanel:
     MODAL_DESCRIPTION_PLACEHOLDER = "В этом поле поддерживаемся MarkDown"
     MODAL_BANNER_URL_LABEL = "ссылка на изображение баннера"
     MODAL_BANNER_URL_PLACEHOLDER = "Изображение встроенное внизу"
+
+    VIEW_BUTTON_LABEL = "Заполнить"

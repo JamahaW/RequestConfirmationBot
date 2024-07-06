@@ -1,6 +1,3 @@
-from __future__ import annotations
-
-from discord.ui import InputText
 from discord.ui import InputText
 from discord.ui import Modal
 
