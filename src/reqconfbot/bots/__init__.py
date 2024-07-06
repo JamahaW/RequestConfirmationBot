@@ -1,22 +1,39 @@
 from __future__ import annotations
 
-from enum import Enum
-from enum import auto
+from abc import ABC
+from abc import abstractmethod
 from logging import Logger
+from typing import Iterable
 
-from reqconfbot.bots.basicbot import CustomBot
+from discord import Bot
+from discord import Intents
+from discord import Message
+from discord.ui import View
+
 from reqconfbot.bots.nethex import NethexBot
-from reqconfbot.utils.tools import Environment
 
 
-class BotType(Enum):
-    NETHEX = auto()
+class CustomBot(Bot, ABC):
+    def __init__(self, logger: Logger, prefix: str):
+        super().__init__(prefix, intents=Intents.default().all())
+        self.__persistent_views_added = False
+        self.logger = logger
 
-    @classmethod
-    def make(cls, bot_type: BotType, logger: Logger, env: Environment) -> CustomBot:
-        match bot_type:
-            case cls.NETHEX:
-                return NethexBot(logger, env.prefix, env.database_folder)
+    @abstractmethod
+    def getPersistentViews(self) -> Iterable[View]:
+        pass
 
-            case _:
-                raise ValueError()
+    async def on_ready(self):
+        self.logger.info(f"{self.user.name} запустился и готов к работе!")
+
+        if not self.__persistent_views_added:
+            for v in self.getPersistentViews():
+                self.add_view(v)
+
+            self.__persistent_views_added = True
+            self.logger.info("persistent_views_added")
+
+    @staticmethod
+    async def on_message(message: Message):
+        if message.author.bot:
+            return

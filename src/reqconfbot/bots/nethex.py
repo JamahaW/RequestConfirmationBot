@@ -4,7 +4,7 @@ from typing import Iterable
 
 from discord.ui import View
 
-from reqconfbot.bots.basicbot import CustomBot
+from reqconfbot.bots import CustomBot
 from reqconfbot.cogs.nethex import NethexCog
 from reqconfbot.forms.nethex import CreatePanelView
 from reqconfbot.forms.nethex import NethexFormView

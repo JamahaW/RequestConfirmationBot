@@ -1,7 +1,7 @@
 from logging import DEBUG
 from os import PathLike
 
-from reqconfbot.bots import BotType
+from reqconfbot.bots.bot_type import BotType
 from reqconfbot.utils.customlogger import CustomFileHandler
 from reqconfbot.utils.customlogger import createCustomLogger
 from reqconfbot.utils.customlogger import createLogFilepath

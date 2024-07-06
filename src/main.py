@@ -1,4 +1,4 @@
-from reqconfbot.bots import BotType
+from reqconfbot.bots.bot_type import BotType
 from reqconfbot.launch import launchBot
 
 if __name__ == "__main__":
