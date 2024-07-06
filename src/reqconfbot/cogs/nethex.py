@@ -10,10 +10,9 @@ from discord.ext.commands import Cog
 from discord.ext.commands import has_permissions
 from discord.ext.commands import slash_command
 
-from reqconfbot.bots import BotType
 from reqconfbot.databases.nethex import NethexGuild
 from reqconfbot.databases.nethex import NethexJsonDatabase
-from reqconfbot.forms.nethex import PanelCreatorModal
+from reqconfbot.legacy_nethex_form import PanelCreatorModal
 from reqconfbot.utils.tools import ErrorsTyper
 
 
@@ -25,7 +24,10 @@ class NethexCog(Cog):
         self.bot = bot
         self.__class__.database = NethexJsonDatabase(json_database_folder)
 
-    @slash_command(name="form_master", description="Отправляет в данный текстовый канал настраиваемое сообщение с кнопок для отправки заявок")
+    @slash_command(
+        name="open_panel_creator",
+        description="Отправляет в данный текстовый канал настраиваемое сообщение с кнопок для отправки заявок"
+    )
     @has_permissions(administrator=True)
     async def __send_forms_setup_message(self, context: ApplicationContext):
         err = ErrorsTyper("Не удалось отправить мастер-форм, попробуйте сделать следующие шаги:")
@@ -44,7 +46,7 @@ class NethexCog(Cog):
             await err.respond(context)
             return
 
-        await context.send_modal(PanelCreatorModal(BotType.NETHEX))
+        await context.send_modal(PanelCreatorModal())
 
     @slash_command(
         name="commands_player_add",
@@ -74,7 +76,9 @@ class NethexCog(Cog):
         await context.respond(f"При одобрении заявки будут выполнены команды:\n{cmd_repr}", ephemeral=True)
 
     # FIXME Дублирование кода
-    @slash_command(name="commands_output")
+    @slash_command(
+        name="commands_output"
+    )
     @has_permissions(administrator=True)
     async def __set_commands_output(
             self,
@@ -88,12 +92,15 @@ class NethexCog(Cog):
 
         await context.respond(f"Теперь канал для вывода команд - {channel.jump_url}", ephemeral=True)
 
-    @slash_command(name="forms_output")
+    @slash_command(
+        name="forms_output",
+        description="Настроить канал для рассмотрения заявок"
+    )
     @has_permissions(administrator=True)
     async def __set_forms_send_output(
             self,
             context: ApplicationContext,
-            channel: Option(TextChannel, required=True, description="Настроить канал для рассмотрения заявок")
+            channel: Option(TextChannel, required=True)
     ):
         channel: TextChannel
 

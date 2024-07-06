@@ -1,6 +1,4 @@
 from __future__ import annotations
-from __future__ import annotations
-from __future__ import annotations
 
 import re
 from abc import ABC
@@ -23,10 +21,15 @@ from discord.ui import InputText
 from discord.ui import Modal
 from discord.ui import View
 
-from reqconfbot.bots import BotType
 from reqconfbot.constants.nethex import NethexForm
 from reqconfbot.constants.panelcreator import PanelCreator
-from reqconfbot.forms import ModalTextBuilder
+
+
+class ModalTextBuilder(Modal):
+
+    def add(self, inputText: InputText) -> InputText:
+        self.add_item(inputText)
+        return inputText
 
 
 class PanelCreatorEmbed(Embed):
@@ -43,9 +46,8 @@ class PanelCreatorEmbed(Embed):
 
 class PanelCreatorModal(ModalTextBuilder):
 
-    def __init__(self, bot_type: BotType):
+    def __init__(self):
         super().__init__(title=PanelCreator.MODAL_TITLE)
-        self.form_type: BotType = bot_type
 
         self.author = self.add(InputText(
             label=PanelCreator.MODAL_AUTHOR_LABEL,
@@ -88,7 +90,7 @@ class PanelCreatorModal(ModalTextBuilder):
     async def callback(self, interaction: Interaction):
         await interaction.response.send_message(
             embed=PanelCreatorEmbed(self),
-            view=PanelCreatorView.make(self.form_type)
+            view=NethexPanelCreatorView()
         )
 
 
@@ -274,12 +276,6 @@ class NethexFormModal(ModalTextBuilder):
 
 
 class PanelCreatorView(View, ABC):
-
-    @staticmethod
-    def make(bot_type: BotType) -> PanelCreatorView:
-        match bot_type:
-            case BotType.NETHEX:
-                return NethexPanelCreatorView()
 
     def __init__(self):
         super().__init__(timeout=None)

@@ -5,8 +5,8 @@ from discord.ui import View
 
 from reqconfbot.bots.custombot import CustomBot
 from reqconfbot.cogs.nethex import NethexCog
-from reqconfbot.forms.nethex import NethexFormView
-from reqconfbot.forms.nethex import NethexPanelCreatorView
+from reqconfbot.legacy_nethex_form import NethexFormView
+from reqconfbot.legacy_nethex_form import NethexPanelCreatorView
 
 
 class NethexBot(CustomBot):
