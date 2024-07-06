@@ -13,7 +13,6 @@ from reqconfbot.tools import ErrorsTyper
 
 
 def launchBot():
-    logger.info("Request Confirmation bot")
     bot.run()
     logger.info("stopped")
 
