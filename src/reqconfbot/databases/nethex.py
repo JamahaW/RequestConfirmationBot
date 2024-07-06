@@ -22,6 +22,7 @@ class NethexGuild(BasicGuild):
     """Команды, которые будут отправлены"""
 
     def __formatCommand(self, command: str, nickname: str, user_id: int) -> str:
+        """Получить команду с подставленными аргументами"""
         return command.replace(self.MINECRAFT_PLAYER_NAME_PLACEHOLDER, nickname).replace(self.DISCORD_USER_ID_PLACEHOLDER, f"{user_id}")
 
     def getFormattedCommands(self, nickname: str, user_id: int) -> Iterable[str]:
@@ -33,8 +34,8 @@ class NethexGuild(BasicGuild):
 
 class NethexJsonDatabase(GuildJSONDatabase[NethexGuild]):
 
-    def _parse(self, guild_id: int, data: dict) -> NethexGuild:
-        return self._createGuildData(guild_id).read(data)
+    def _parse(self, data: dict) -> NethexGuild:
+        return NethexGuild(**data)
 
     def _createGuildData(self, guild_id: int) -> NethexGuild:
         return NethexGuild(guild_id)

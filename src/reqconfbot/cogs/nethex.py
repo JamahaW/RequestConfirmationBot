@@ -66,7 +66,7 @@ class NethexCog(Cog):
             await err.respond(context)
             return
 
-        self.database.get(context.guild_id).commands_on_player_add = cmds = tuple(filter(bool, commands.split(self.COMMANDS_SEPARATOR)))
+        self.database.get(context.guild_id).minecraft_commands_on_player_apply = cmds = tuple(filter(bool, commands.split(self.COMMANDS_SEPARATOR)))
         self.database.dump()
 
         cmd_repr = ''.join(f'* `{c}`\n' for c in cmds)
@@ -82,7 +82,7 @@ class NethexCog(Cog):
     ):
         channel: TextChannel
 
-        self.database.get(context.guild_id).commands_send_channel_id = channel.id
+        self.database.get(context.guild_id).minecraft_commands_channel_id = channel.id
         self.database.dump()
 
         await context.respond(f"Теперь канал для вывода команд - {channel.jump_url}", ephemeral=True)
@@ -96,7 +96,7 @@ class NethexCog(Cog):
     ):
         channel: TextChannel
 
-        self.database.get(context.guild_id).form_channel_id = channel.id
+        self.database.get(context.guild_id).forms_channel_id = channel.id
         self.database.dump()
 
         await context.respond(f"Теперь канал для рассмотрения заявок - {channel.jump_url}", ephemeral=True)

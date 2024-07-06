@@ -151,7 +151,7 @@ class ModalNethexForm(ModalTextBuilder):
 
     async def sendFormsChannelFormView(self, embed, interaction):
         from reqconfbot.cogs.nethex import NethexCog
-        await interaction.guild.get_channel(NethexCog.database.get(self.guild_id).form_channel_id).send(embed=embed, view=ViewUserForm())
+        await interaction.guild.get_channel(NethexCog.database.get(self.guild_id).forms_channel_id).send(embed=embed, view=ViewUserForm())
 
     @staticmethod
     async def sendEphemeralFormMessage(embed, interaction):
@@ -209,10 +209,10 @@ class ButtonUserForm(Button["ViewUserForm"]):
 
         server_data = NethexCog.database.get(interaction.guild_id)
 
-        cmds = server_data.getFormattedCommand(nickname, member.id)
+        cmds = server_data.getFormattedCommands(nickname, member.id)
 
         for cmd in cmds:
-            await interaction.guild.get_channel(server_data.commands_send_channel_id).send(content=cmd)
+            await interaction.guild.get_channel(server_data.minecraft_commands_channel_id).send(content=cmd)
 
     async def callback(self, interaction: Interaction):
         self.view.disable_all_items()

@@ -33,6 +33,8 @@ class GuildJSONDatabase(ABC, Generic[_T]):
     def __init__(self, json_filepath: PathLike | str) -> None:
         self.__filepath = json_filepath
         self.__data = dict[int, _T]()
+        self.__read()
+        pass
 
     def get(self, guild_id: int) -> _T:
         """Получить данные дискорд сервера по его ID"""
@@ -49,12 +51,12 @@ class GuildJSONDatabase(ABC, Generic[_T]):
     def __read(self) -> None:
         with open(self.__filepath, "r") as f:
             raw_data = json.load(f)
-        self.__data = {int(key): self._parse(int(key), data) for key, data in raw_data}
+        self.__data = {int(key): self._parse(data) for key, data in raw_data.items()}
 
     @abstractmethod
     def _createGuildData(self, guild_id: int) -> _T:
         """Получить новый экземпляр дата класса"""
 
     @abstractmethod
-    def _parse(self, guild_id: int, data: dict) -> _T:
+    def _parse(self, data: dict) -> _T:
         """Преобразовать JSON словарь в дату класс"""
