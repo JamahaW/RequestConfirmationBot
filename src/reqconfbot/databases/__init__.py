@@ -4,7 +4,7 @@ import json
 from abc import ABC
 from abc import abstractmethod
 from dataclasses import dataclass
-from os import PathLike
+from pathlib import Path
 from typing import Any
 from typing import Generic
 from typing import TypeVar
@@ -30,11 +30,10 @@ _T = TypeVar("_T", bound=BasicGuild)
 
 class GuildJSONDatabase(ABC, Generic[_T]):
 
-    def __init__(self, json_filepath: PathLike | str) -> None:
-        self.__filepath = json_filepath
+    def __init__(self, json_filepath: Path) -> None:
+        self.__filepath = json_filepath / f"{self._getJSONFileName()}.json"
         self.__data = dict[int, _T]()
         self.__read()
-        pass
 
     def get(self, guild_id: int) -> _T:
         """Получить данные дискорд сервера по его ID"""
@@ -49,8 +48,12 @@ class GuildJSONDatabase(ABC, Generic[_T]):
             json.dump(dict((d.write() for d in self.__data.values())), f, indent=2)
 
     def __read(self) -> None:
+        if not self.__filepath.exists():
+            return
+
         with open(self.__filepath, "r") as f:
             raw_data = json.load(f)
+
         self.__data = {int(key): self._parse(data) for key, data in raw_data.items()}
 
     @abstractmethod
@@ -60,3 +63,7 @@ class GuildJSONDatabase(ABC, Generic[_T]):
     @abstractmethod
     def _parse(self, data: dict) -> _T:
         """Преобразовать JSON словарь в дату класс"""
+
+    @abstractmethod
+    def _getJSONFileName(self) -> str:
+        """Получить название JSON файла базы данных"""

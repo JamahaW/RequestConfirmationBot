@@ -34,6 +34,9 @@ class NethexGuild(BasicGuild):
 
 class NethexJsonDatabase(GuildJSONDatabase[NethexGuild]):
 
+    def _getJSONFileName(self) -> str:
+        return "nethex"
+
     def _parse(self, data: dict) -> NethexGuild:
         return NethexGuild(**data)
 

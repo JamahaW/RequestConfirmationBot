@@ -1,4 +1,4 @@
-from os import PathLike
+from pathlib import Path
 from typing import ClassVar
 from typing import Optional
 
@@ -20,7 +20,7 @@ class NethexCog(Cog):
     COMMANDS_SEPARATOR: ClassVar[str] = ";"
     database: ClassVar[Optional[NethexJsonDatabase]] = None
 
-    def __init__(self, bot: Bot, json_database_path: PathLike | str):
+    def __init__(self, bot: Bot, json_database_path: Path):
         self.bot = bot
         self.__class__.database = NethexJsonDatabase(json_database_path)
 

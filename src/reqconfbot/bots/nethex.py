@@ -1,5 +1,5 @@
 from logging import Logger
-from os import PathLike
+from pathlib import Path
 from typing import Iterable
 
 from discord.ui import View
@@ -18,6 +18,6 @@ class NethexBot(CustomBot):
             ViewUserForm()
         )
 
-    def __init__(self, logger: Logger, prefix: str, json_database_path: PathLike | str):
+    def __init__(self, logger: Logger, prefix: str, json_database_path: Path):
         super().__init__(logger, prefix)
         self.add_cog(NethexCog(self, json_database_path))
