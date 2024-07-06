@@ -6,16 +6,16 @@ from discord.ui import View
 
 from reqconfbot.bots.basicbot import CustomBot
 from reqconfbot.cogs.nethex import NethexCog
-from reqconfbot.nethexform import ViewSendModalRequest
-from reqconfbot.nethexform import ViewUserForm
+from reqconfbot.forms.nethex import CreatePanelView
+from reqconfbot.forms.nethex import NethexFormView
 
 
 class NethexBot(CustomBot):
 
     def getPersistentViews(self) -> Iterable[View]:
         return (
-            ViewSendModalRequest(),
-            ViewUserForm()
+            CreatePanelView(),
+            NethexFormView()
         )
 
     def __init__(self, logger: Logger, prefix: str, json_database_folder: Path):
