@@ -1,0 +1,5 @@
+.gitignore
+.idea
+logs
+data
+src/.env
