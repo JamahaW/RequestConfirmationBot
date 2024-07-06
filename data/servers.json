@@ -1,12 +1,9 @@
 {
   "1252702836505055314": {
-    "form_channel_id": 1253105478104514681,
-    "commands_send_channel_id": 1253413795045314620,
-    "commands_on_player_add": [
-      "name",
-      "id",
-      "name",
-      "sys"
-    ]
+    "server_id": 1252702836505055314,
+    "forms_channel_id": null,
+    "minecraft_commands_channel_id": null,
+    "minecraft_commands_on_player_apply": null,
+    "form_channel_id": 1253105478104514681
   }
 }

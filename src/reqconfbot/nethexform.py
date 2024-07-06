@@ -18,9 +18,6 @@ from discord.ui import InputText
 from discord.ui import Modal
 from discord.ui import View
 
-from reqconfbot.jsondatabase import ServerData
-from reqconfbot.jsondatabase import ServerJSONDatabase
-
 
 class ModalTextBuilder(Modal):
 
@@ -87,25 +84,21 @@ class ModalFormSetup(ModalTextBuilder):
 
 
 class ViewSendModalRequest(View):
-    server_database: ServerJSONDatabase = None
 
     def __init__(self):
         super().__init__(timeout=None)
 
-    @ui.button(label="Заполнить", style=ButtonStyle.green, custom_id="ModalFormSetup:view:button")
+    @ui.button(label="Заполнить", style=ButtonStyle.green, custom_id="ViewSendModalRequest:view:button")
     async def send_modal(self, _, interaction: Interaction):
-        # interaction.response: InteractionResponse
-        await interaction.response.send_modal(
-            ModalNethexForm(self.__class__.server_database.get(interaction.guild_id))
-        )
+        await interaction.response.send_modal(ModalNethexForm(interaction.guild_id))
 
 
 class ModalNethexForm(ModalTextBuilder):
     MINECRAFT_NICKNAME_PATTERN = r'^[a-zA-Z0-9_]+$'
 
-    def __init__(self, server_data: ServerData):
+    def __init__(self, guild_id: int):
         super().__init__(title="Заявка")
-        self.server_data = server_data
+        self.guild_id = guild_id
 
         self.minecraft_nickname = self.add(InputText(
             style=InputTextStyle.singleline,
@@ -148,9 +141,21 @@ class ModalNethexForm(ModalTextBuilder):
             return
 
         embed = EmbedUserForm(interaction, self)
-        await interaction.respond("Ваша заявка отправлена администрации и её копия вам в ЛС", ephemeral=True, embed=embed)
-        await interaction.guild.get_channel(self.server_data.form_channel_id).send(embed=embed, view=ViewUserForm())
+        await self.sendEphemeralFormMessage(embed, interaction)
+        await self.sendFormsChannelFormView(embed, interaction)
+        await self.sendToUserFormCopy(embed, interaction)
+
+    @staticmethod
+    async def sendToUserFormCopy(embed, interaction):
         await interaction.user.send(content="# Ваша заявка была отправлена, ожидайте подтверждения", embed=embed)
+
+    async def sendFormsChannelFormView(self, embed, interaction):
+        from reqconfbot.cogs.nethex import NethexCog
+        await interaction.guild.get_channel(NethexCog.database.get(self.guild_id).form_channel_id).send(embed=embed, view=ViewUserForm())
+
+    @staticmethod
+    async def sendEphemeralFormMessage(embed, interaction):
+        await interaction.respond("Ваша заявка отправлена администрации и её копия вам в ЛС", ephemeral=True, embed=embed)
 
 
 class EmbedUserForm(Embed):
@@ -197,15 +202,17 @@ class ButtonUserForm(Button["ViewUserForm"]):
         self.color = color
 
     async def memberProcess(self, interaction: Interaction, member: Member, embed: Embed, nickname: str):
+        from reqconfbot.cogs.nethex import NethexCog
+
         embed.add_field(name="Сервер", value=interaction.guild.name, inline=True)
         await member.send(embed=embed)
 
-        server = self.view.server_database.get(interaction.guild_id)
+        server_data = NethexCog.database.get(interaction.guild_id)
 
-        cmds = server.getFormattedCommand(nickname, member.id)
+        cmds = server_data.getFormattedCommand(nickname, member.id)
 
         for cmd in cmds:
-            await interaction.guild.get_channel(server.commands_send_channel_id).send(content=cmd)
+            await interaction.guild.get_channel(server_data.commands_send_channel_id).send(content=cmd)
 
     async def callback(self, interaction: Interaction):
         self.view.disable_all_items()
@@ -257,7 +264,6 @@ class ModalUserFormDeny(ModalTextBuilder):
 
 
 class ViewUserForm(View):
-    server_database: ServerJSONDatabase = None
 
     def __init__(self):
         super().__init__(
