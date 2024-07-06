@@ -6,7 +6,7 @@ from logging import Logger
 
 from reqconfbot.bots.basicbot import CustomBot
 from reqconfbot.bots.nethex import NethexBot
-from reqconfbot.tools import Environment
+from reqconfbot.utils.tools import Environment
 
 
 class BotType(Enum):

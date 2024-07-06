@@ -45,7 +45,7 @@ class GuildJSONDatabase(ABC, Generic[_T]):
     def dump(self) -> None:
         """Сохранить значения базы"""
         with open(self.__filepath, "w") as f:
-            json.dump(dict((d.write() for d in self.__data.values())), f, indent=2)
+            json.dump(dict((d.write() for d in self.__data.values())), f)
 
     def __read(self) -> None:
         if not self.__filepath.exists():

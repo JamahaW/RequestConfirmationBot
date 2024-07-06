@@ -2,10 +2,10 @@ from logging import DEBUG
 from os import PathLike
 
 from reqconfbot.bots import BotType
-from reqconfbot.customlogger import CustomFileHandler
-from reqconfbot.customlogger import createCustomLogger
-from reqconfbot.customlogger import createLogFilepath
-from reqconfbot.tools import Environment
+from reqconfbot.utils.customlogger import CustomFileHandler
+from reqconfbot.utils.customlogger import createCustomLogger
+from reqconfbot.utils.customlogger import createLogFilepath
+from reqconfbot.utils.tools import Environment
 
 
 def launchBot(env_filepath: PathLike | str, bot_type: BotType):

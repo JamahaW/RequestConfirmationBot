@@ -12,8 +12,8 @@ from os import PathLike
 from pathlib import Path
 from typing import Final
 
-from reqconfbot.tools import TIME_FORMAT
-from reqconfbot.tools import datetimeString
+from reqconfbot.utils.tools import TIME_FORMAT
+from reqconfbot.utils.tools import datetimeString
 
 
 class CustomFileHandler(FileHandler):

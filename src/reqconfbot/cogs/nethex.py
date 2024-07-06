@@ -13,7 +13,7 @@ from discord.ext.commands import slash_command
 from reqconfbot.databases.nethex import NethexGuild
 from reqconfbot.databases.nethex import NethexJsonDatabase
 from reqconfbot.nethexform import ModalFormSetup
-from reqconfbot.tools import ErrorsTyper
+from reqconfbot.utils.tools import ErrorsTyper
 
 
 class NethexCog(Cog):
