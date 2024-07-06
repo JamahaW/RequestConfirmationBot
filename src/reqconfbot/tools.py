@@ -1,10 +1,23 @@
 from __future__ import annotations
 
+from dataclasses import dataclass
+from dataclasses import field
+
 from datetime import datetime
 from io import StringIO
+from os import PathLike
+from os import getenv
+from os import getenv
+from os import getenv
+from os import getenv
+from pathlib import Path
+from pathlib import Path
+from pathlib import Path
+from pathlib import Path
 from typing import Final
 
 from discord import ApplicationContext
+from dotenv import load_dotenv
 
 TIME_FORMAT: Final[str] = "%d-%m-%Y_%H-%M-%S"
 
@@ -50,3 +63,18 @@ class ErrorsTyper:
 
     async def respond(self, context: ApplicationContext):
         await context.respond(self.__str__(), ephemeral=True)
+
+
+@dataclass()
+class EnvironmentData:
+    log_folder: Path
+    database_folder: Path
+    prefix: str
+    token: str = field(repr=False)
+
+    def __init__(self, env_filepath: PathLike | str) -> None:
+        load_dotenv(env_filepath)
+        self.log_folder = Path(getenv("LOG_FOLDER"))
+        self.database_folder = Path(getenv("JSON_DATABASE_PATH"))
+        self.prefix = getenv("DISCORD_BOT_PREFIX")
+        self.token = getenv("DISCORD_BOT_TOKEN")

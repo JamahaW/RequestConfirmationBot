@@ -9,6 +9,7 @@ from logging import Logger
 from logging import StreamHandler
 from logging import getLogger
 from os import PathLike
+from pathlib import Path
 from typing import Final
 
 from reqconfbot.tools import TIME_FORMAT
@@ -34,5 +35,5 @@ def createCustomLogger(name: str, filehandler: FileHandler, level: int = DEBUG, 
     return __logger
 
 
-def createLogFilepath(path: PathLike | str) -> str:
-    return f"{path}{datetimeString(datetime.now())}.log"
+def createLogFilepath(path: Path) -> Path:
+    return path / f"{datetimeString(datetime.now())}.log"
