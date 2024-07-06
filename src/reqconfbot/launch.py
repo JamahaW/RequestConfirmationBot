@@ -34,7 +34,7 @@ async def __send_forms_setup_message(context: ApplicationContext):
         err.add("Задать команду при добавлении игрока")
 
     if err.isFailed():
-        await context.respond(str(err), ephemeral=True)
+        await err.respond(context)
         return
 
     await context.send_modal(ModalFormSetup())
@@ -60,11 +60,10 @@ async def __set_minecraft_commands_on_player_add(
             err.add(f"Команда должна содержать шаблон для подстановки (значение после =) {placeholder}")
 
     if err.isFailed():
-        await context.respond(str(err), ephemeral=True)
+        await err.respond(context)
         return
 
     bot.servers_data.get(context.guild_id).commands_on_player_add = cmds = tuple(filter(bool, commands.split(COMMANDS_SEPARATOR)))
-
     bot.servers_data.dump()
 
     cmd_repr = ''.join(f'* `{c}`\n' for c in cmds)

@@ -30,11 +30,16 @@ class CustomDiscordBot(Bot, ABC):
 
     async def on_ready(self):
         logger.info(f"{bot.user.name} запустился и готов к работе!")
+        self.addPersistentViews()
 
-        if not self.__persistent_views_added:
-            self.__persistent_views_added = True
-            self.add_view(ViewSendModalRequest())
-            self.add_view(ViewUserForm())
+    def addPersistentViews(self):
+        if self.__persistent_views_added:
+            return
+
+        logger.info("persistent_views_added")
+        self.__persistent_views_added = True
+        self.add_view(ViewSendModalRequest())
+        self.add_view(ViewUserForm())
 
     @staticmethod
     async def on_message(message: Message):

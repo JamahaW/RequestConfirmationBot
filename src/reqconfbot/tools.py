@@ -4,6 +4,8 @@ from datetime import datetime
 from io import StringIO
 from typing import Final
 
+from discord import ApplicationContext
+
 TIME_FORMAT: Final[str] = "%d-%m-%Y_%H-%M-%S"
 
 
@@ -45,3 +47,6 @@ class ErrorsTyper:
 
     def __str__(self) -> str:
         return self.__string_builder.toString()
+
+    async def respond(self, context: ApplicationContext):
+        await context.respond(self.__str__(), ephemeral=True)
