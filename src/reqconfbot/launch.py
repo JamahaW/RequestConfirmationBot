@@ -1,3 +1,5 @@
+from typing import Final
+
 from discord import ApplicationContext
 from discord import Option
 from discord import TextChannel
@@ -38,9 +40,12 @@ async def __send_forms_setup_message(context: ApplicationContext):
     await context.send_modal(ModalFormSetup())
 
 
+COMMANDS_SEPARATOR: Final[str] = ";"
+
+
 @bot.slash_command(
     name="commands_player_add",
-    description=f"команды при добавлении игрока ({ServerData.COMMANDS_SEPARATOR} для разделения)"
+    description=f"команды при добавлении игрока ({COMMANDS_SEPARATOR} для разделения)"
 )
 @has_permissions(administrator=True)
 async def __set_minecraft_commands_on_player_add(
@@ -58,10 +63,12 @@ async def __set_minecraft_commands_on_player_add(
         await context.respond(str(err), ephemeral=True)
         return
 
-    bot.servers_data.get(context.guild_id).commands_on_player_add = commands
+    bot.servers_data.get(context.guild_id).commands_on_player_add = cmds = tuple(filter(bool, commands.split(COMMANDS_SEPARATOR)))
+
     bot.servers_data.dump()
 
-    await context.respond(f"Теперь добавления игроков используется команда вида\n```{commands}```", ephemeral=True)
+    cmd_repr = ''.join(f'* `{c}`\n' for c in cmds)
+    await context.respond(f"При одобрении заявки будут выполнены команды:\n{cmd_repr}", ephemeral=True)
 
 
 # FIXME Дублирование кода

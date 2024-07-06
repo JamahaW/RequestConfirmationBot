@@ -12,7 +12,6 @@ class ServerData:
     FORM_CHANNEL_ID: Final[str] = "form_channel_id"
     COMMANDS_SEND_CHANNEL_ID: Final[str] = "commands_send_channel_id"
     MINECRAFT_COMMANDS_ON_PLAYER_ADD: Final[str] = "commands_on_player_add"
-    COMMANDS_SEPARATOR: Final[str] = ";"
 
     MINECRAFT_COMMAND_PLACEHOLDER_NICKNAME: Final[str] = "name"
     MINECRAFT_COMMAND_PLACEHOLDER_USER_DISCORD_ID: Final[str] = "id"
@@ -44,14 +43,13 @@ class ServerData:
         self.server_id: int = server_id
         self.form_channel_id: Optional[int] = form_channel_id
         self.commands_send_channel_id: Optional[int] = command_send_channel_id
-        self.commands_on_player_add: Optional[str] = command_on_player_add
+        self.commands_on_player_add: Optional[tuple[str, ...]] = command_on_player_add
 
     def getFormattedCommand(self, name: str, _id: int) -> Iterable[str]:
-        return self.commands_on_player_add.replace(
-            self.MINECRAFT_COMMAND_PLACEHOLDER_NICKNAME, name
-        ).replace(
-            self.MINECRAFT_COMMAND_PLACEHOLDER_USER_DISCORD_ID, f"{_id}"
-        ).split(self.COMMANDS_SEPARATOR)
+        return (
+            cmd.replace(self.MINECRAFT_COMMAND_PLACEHOLDER_NICKNAME, name).replace(self.MINECRAFT_COMMAND_PLACEHOLDER_USER_DISCORD_ID, f"{_id}")
+            for cmd in self.commands_on_player_add
+        )
 
     def write(self) -> tuple[str, dict[str, int]]:
         return (
