@@ -75,6 +75,6 @@ class EnvironmentData:
     def __init__(self, env_filepath: PathLike | str) -> None:
         load_dotenv(env_filepath)
         self.log_folder = Path(getenv("LOG_FOLDER"))
-        self.database_folder = Path(getenv("JSON_DATABASE_PATH"))
+        self.database_folder = Path(getenv("JSON_DATABASES_FOLDER"))
         self.prefix = getenv("DISCORD_BOT_PREFIX")
         self.token = getenv("DISCORD_BOT_TOKEN")
