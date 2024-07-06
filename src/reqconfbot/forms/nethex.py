@@ -1,9 +1,12 @@
 from __future__ import annotations
+from __future__ import annotations
+from __future__ import annotations
 
 import re
 from abc import ABC
 from abc import abstractmethod
 from typing import ClassVar
+from typing import Optional
 
 from discord import ButtonStyle
 from discord import Color
@@ -17,15 +20,17 @@ from discord import User
 from discord import ui
 from discord.ui import Button
 from discord.ui import InputText
+from discord.ui import Modal
 from discord.ui import View
 
-from reqconfbot.constants.createpanel import CreatePanel
+from reqconfbot.bots import BotType
 from reqconfbot.constants.nethex import NethexForm
+from reqconfbot.constants.panelcreator import PanelCreator
 from reqconfbot.forms import ModalTextBuilder
 
 
-class CreatePanelEmbed(Embed):
-    def __init__(self, createPanelModal: CreatePanelModal):
+class PanelCreatorEmbed(Embed):
+    def __init__(self, createPanelModal: PanelCreatorModal):
         super().__init__(
             author=EmbedAuthor(createPanelModal.author.value),
             thumbnail=createPanelModal.thumbnail_url.value,
@@ -36,63 +41,54 @@ class CreatePanelEmbed(Embed):
         )
 
 
-class CreatePanelView(View):
+class PanelCreatorModal(ModalTextBuilder):
 
-    def __init__(self):
-        super().__init__(timeout=None)
-
-    @ui.button(label=CreatePanel.VIEW_BUTTON_LABEL, style=ButtonStyle.green, custom_id="ViewSendModalRequest:view:button")
-    async def send_modal(self, _, interaction: Interaction):
-        await interaction.response.send_modal(NethexFormModal(interaction.guild_id))
-
-
-class CreatePanelModal(ModalTextBuilder):
-
-    def __init__(self):
-        super().__init__(title=CreatePanel.MODAL_TITLE)
+    def __init__(self, bot_type: BotType):
+        super().__init__(title=PanelCreator.MODAL_TITLE)
+        self.form_type: BotType = bot_type
 
         self.author = self.add(InputText(
-            label=CreatePanel.MODAL_AUTHOR_LABEL,
-            placeholder=CreatePanel.MODAL_AUTHOR_PLACEHOLDER,
+            label=PanelCreator.MODAL_AUTHOR_LABEL,
+            placeholder=PanelCreator.MODAL_AUTHOR_PLACEHOLDER,
             min_length=4,
             max_length=32,
             style=InputTextStyle.singleline
         ))
 
         self.thumbnail_url = self.add(InputText(
-            label=CreatePanel.MODAL_THUMBNAIL_URL_LABEL,
-            placeholder=CreatePanel.MODAL_THUMBNAIL_URL_PLACEHOLDER,
+            label=PanelCreator.MODAL_THUMBNAIL_URL_LABEL,
+            placeholder=PanelCreator.MODAL_THUMBNAIL_URL_PLACEHOLDER,
             style=InputTextStyle.short,
             required=False
         ))
 
         self.theme = self.add(InputText(
-            label=CreatePanel.MODAL_THEME_LABEL,
-            placeholder=CreatePanel.MODAL_THEME_PLACEHOLDER,
+            label=PanelCreator.MODAL_THEME_LABEL,
+            placeholder=PanelCreator.MODAL_THEME_PLACEHOLDER,
             min_length=8,
             max_length=40,
             style=InputTextStyle.singleline
         ))
 
         self.description = self.add(InputText(
-            label=CreatePanel.MODAL_DESCRIPTION_LABEL,
-            placeholder=CreatePanel.MODAL_DESCRIPTION_PLACEHOLDER,
+            label=PanelCreator.MODAL_DESCRIPTION_LABEL,
+            placeholder=PanelCreator.MODAL_DESCRIPTION_PLACEHOLDER,
             min_length=20,
             max_length=1000,
             style=InputTextStyle.long
         ))
 
         self.banner_url = self.add(InputText(
-            label=CreatePanel.MODAL_BANNER_URL_LABEL,
-            placeholder=CreatePanel.MODAL_BANNER_URL_PLACEHOLDER,
+            label=PanelCreator.MODAL_BANNER_URL_LABEL,
+            placeholder=PanelCreator.MODAL_BANNER_URL_PLACEHOLDER,
             style=InputTextStyle.short,
             required=False
         ))
 
     async def callback(self, interaction: Interaction):
         await interaction.response.send_message(
-            embed=CreatePanelEmbed(self),
-            view=CreatePanelView()
+            embed=PanelCreatorEmbed(self),
+            view=PanelCreatorView.make(self.form_type)
         )
 
 
@@ -275,3 +271,30 @@ class NethexFormModal(ModalTextBuilder):
     @staticmethod
     async def sendFormEphemeral(embed, interaction):
         await interaction.respond(NethexForm.MODAL_MESSAGE_SEND_EPHEMERAL, ephemeral=True, embed=embed)
+
+
+class PanelCreatorView(View, ABC):
+
+    @staticmethod
+    def make(bot_type: BotType) -> PanelCreatorView:
+        match bot_type:
+            case BotType.NETHEX:
+                return NethexPanelCreatorView()
+
+    def __init__(self):
+        super().__init__(timeout=None)
+        self.modal: Optional[Modal] = None
+
+    @ui.button(label=PanelCreator.VIEW_BUTTON_LABEL, style=ButtonStyle.green, custom_id="ViewSendModalRequest:view:button")
+    async def send_modal(self, _, interaction: Interaction):
+        modal = self.getFormModal(interaction)
+        await interaction.response.send_modal(modal)
+
+    @abstractmethod
+    def getFormModal(self, interaction: Interaction) -> Modal:
+        pass
+
+
+class NethexPanelCreatorView(PanelCreatorView):
+    def getFormModal(self, interaction: Interaction) -> Modal:
+        return NethexFormModal(interaction.guild_id)

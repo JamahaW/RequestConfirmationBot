@@ -10,9 +10,10 @@ from discord.ext.commands import Cog
 from discord.ext.commands import has_permissions
 from discord.ext.commands import slash_command
 
+from reqconfbot.bots import BotType
 from reqconfbot.databases.nethex import NethexGuild
 from reqconfbot.databases.nethex import NethexJsonDatabase
-from reqconfbot.forms.nethex import CreatePanelModal
+from reqconfbot.forms.nethex import PanelCreatorModal
 from reqconfbot.utils.tools import ErrorsTyper
 
 
@@ -43,7 +44,7 @@ class NethexCog(Cog):
             await err.respond(context)
             return
 
-        await context.send_modal(CreatePanelModal())
+        await context.send_modal(PanelCreatorModal(BotType.NETHEX))
 
     @slash_command(
         name="commands_player_add",
