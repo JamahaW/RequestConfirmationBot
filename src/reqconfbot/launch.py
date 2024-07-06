@@ -26,10 +26,10 @@ async def __send_forms_setup_message(context: ApplicationContext):
     if server_data.form_channel_id is None:
         err.add("Задать канал для вывода заявок")
 
-    if server_data.command_send_channel_id is None:
+    if server_data.commands_send_channel_id is None:
         err.add("Задать канал для команд")
 
-    if server_data.command_on_player_add is None:
+    if server_data.commands_on_player_add is None:
         err.add("Задать команду при добавлении игрока")
 
     if err.isFailed():
@@ -49,12 +49,15 @@ async def __show_server_data_info(context: ApplicationContext):
             StringBuilder("Данные этого сервера")
             .append(f"{data.SERVER_ID}=`{data.server_id}`")
             .append(f"{data.FORM_CHANNEL_ID}=`{data.form_channel_id}`")
-            .append(f"{data.MINECRAFT_COMMAND_ON_PLAYER_ADD}=`{data.command_on_player_add}`")
-            .append(f"{data.COMMAND_SEND_CHANNEL_ID}=`{data.command_send_channel_id}`")
+            .append(f"{data.MINECRAFT_COMMANDS_ON_PLAYER_ADD}=`{data.commands_on_player_add}`")
+            .append(f"{data.COMMANDS_SEND_CHANNEL_ID}=`{data.commands_send_channel_id}`")
         ).toString(), ephemeral=True)
 
 
-@bot.slash_command(name="command_player_add", description="Укажите, какая команда будет отправляться на сервер Майнкрафт для добавления игрока")
+@bot.slash_command(
+    name="command_player_add",
+    description=f"команды при добавлении игрока ({ServerData.COMMANDS_SEPARATOR} для разделения)"
+)
 @has_permissions(administrator=True)
 async def __set_minecraft_command_on_player_add(
         context: ApplicationContext,
@@ -63,14 +66,15 @@ async def __set_minecraft_command_on_player_add(
     command_value = command_value.strip()
     err = ErrorsTyper()
 
-    if (p := ServerData.MINECRAFT_COMMAND_PLAYER_PLACEHOLDER) not in command_value:
-        err.add(f"Команда должна содержать не менее одного {p} для замены на ник игрока")
+    for placeholder in ServerData.MINECRAFT_COMMAND_PLACEHOLDERS:
+        if placeholder not in command_value:
+            err.add(f"Команда должна содержать шаблон для подстановки (значение после =) {placeholder}")
 
     if err.isFailed():
         await context.respond(str(err), ephemeral=True)
         return
 
-    bot.servers_data.get(context.guild_id).command_on_player_add = command_value
+    bot.servers_data.get(context.guild_id).commands_on_player_add = command_value
     bot.servers_data.dump()
 
     await context.respond(f"Теперь добавления игроков используется команда вида\n```{command_value}```", ephemeral=True)
@@ -85,7 +89,7 @@ async def __set_commands_output(
 ):
     channel: TextChannel
 
-    bot.servers_data.get(context.guild_id).command_send_channel_id = channel.id
+    bot.servers_data.get(context.guild_id).commands_send_channel_id = channel.id
     bot.servers_data.dump()
 
     await context.respond(f"Теперь канал для вывода команд - {channel.jump_url}", ephemeral=True)

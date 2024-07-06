@@ -201,9 +201,11 @@ class ButtonUserForm(Button["ViewUserForm"]):
         await member.send(embed=embed)
 
         server = self.view.server_database.get(interaction.guild_id)
-        await interaction.guild.get_channel(server.command_send_channel_id).send(
-            content=server.command_on_player_add.replace(server.MINECRAFT_COMMAND_PLAYER_PLACEHOLDER, nickname)
-        )
+
+        cmds = server.getFormattedCommand(nickname, member.id)
+
+        for cmd in cmds:
+            await interaction.guild.get_channel(server.commands_send_channel_id).send(content=cmd)
 
     async def callback(self, interaction: Interaction):
         self.view.disable_all_items()

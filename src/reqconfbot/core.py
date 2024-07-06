@@ -36,7 +36,8 @@ class CustomDiscordBot(Bot, ABC):
             self.add_view(ViewSendModalRequest())
             self.add_view(ViewUserForm())
 
-    async def on_message(self, message: Message):
+    @staticmethod
+    async def on_message(message: Message):
         if message.author.bot:
             return
 
