@@ -20,7 +20,7 @@ class CustomDiscordBot(Bot, ABC):
         super().__init__(getenv("DISCORD_BOT_PREFIX"), intents=Intents.default().all())
         self.__persistent_views_added = False
 
-        db = ServerJSONDatabase(getenv("SERVERS_JSON_DATABASE_PATH"))
+        db = ServerJSONDatabase(getenv("JSON_DATABASE_PATH"))
         self.servers_data = db
         ViewSendModalRequest.server_database = db
         ViewUserForm.server_database = db
@@ -45,4 +45,4 @@ class CustomDiscordBot(Bot, ABC):
 load_dotenv("./reqconfbot/.env")
 
 bot = CustomDiscordBot()
-logger = createCustomLogger(__name__, CustomFileHandler(getLogPath(getenv("LOGGING_RELATIVE_FOLDER"))), DEBUG, True)
+logger = createCustomLogger(__name__, CustomFileHandler(getLogPath(getenv("LOG_FOLDER"))), DEBUG, True)

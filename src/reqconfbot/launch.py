@@ -8,7 +8,6 @@ from reqconfbot.core import logger
 from reqconfbot.jsondatabase import ServerData
 from reqconfbot.nethexform import ModalFormSetup
 from reqconfbot.tools import ErrorsTyper
-from reqconfbot.tools import StringBuilder
 
 
 def launchBot():
@@ -39,45 +38,30 @@ async def __send_forms_setup_message(context: ApplicationContext):
     await context.send_modal(ModalFormSetup())
 
 
-@bot.slash_command(name="info")
-@has_permissions(administrator=True)
-async def __show_server_data_info(context: ApplicationContext):
-    data = bot.servers_data.get(context.guild_id)
-
-    await context.respond(
-        (
-            StringBuilder("Данные этого сервера")
-            .append(f"{data.SERVER_ID}=`{data.server_id}`")
-            .append(f"{data.FORM_CHANNEL_ID}=`{data.form_channel_id}`")
-            .append(f"{data.MINECRAFT_COMMANDS_ON_PLAYER_ADD}=`{data.commands_on_player_add}`")
-            .append(f"{data.COMMANDS_SEND_CHANNEL_ID}=`{data.commands_send_channel_id}`")
-        ).toString(), ephemeral=True)
-
-
 @bot.slash_command(
-    name="command_player_add",
+    name="commands_player_add",
     description=f"команды при добавлении игрока ({ServerData.COMMANDS_SEPARATOR} для разделения)"
 )
 @has_permissions(administrator=True)
-async def __set_minecraft_command_on_player_add(
+async def __set_minecraft_commands_on_player_add(
         context: ApplicationContext,
-        command_value: str
+        commands: str
 ):
-    command_value = command_value.strip()
+    commands = commands.strip()
     err = ErrorsTyper()
 
     for placeholder in ServerData.MINECRAFT_COMMAND_PLACEHOLDERS:
-        if placeholder not in command_value:
+        if placeholder not in commands:
             err.add(f"Команда должна содержать шаблон для подстановки (значение после =) {placeholder}")
 
     if err.isFailed():
         await context.respond(str(err), ephemeral=True)
         return
 
-    bot.servers_data.get(context.guild_id).commands_on_player_add = command_value
+    bot.servers_data.get(context.guild_id).commands_on_player_add = commands
     bot.servers_data.dump()
 
-    await context.respond(f"Теперь добавления игроков используется команда вида\n```{command_value}```", ephemeral=True)
+    await context.respond(f"Теперь добавления игроков используется команда вида\n```{commands}```", ephemeral=True)
 
 
 # FIXME Дублирование кода

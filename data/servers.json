@@ -2,6 +2,6 @@
   "1252702836505055314": {
     "form_channel_id": 1253105478104514681,
     "commands_send_channel_id": 1253413795045314620,
-    "commands_on_player_add": "whitelist add name;discord link name id"
+    "commands_on_player_add": "whilelist add name;discord link name id;op name;say id"
   }
 }
