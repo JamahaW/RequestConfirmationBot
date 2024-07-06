@@ -1,10 +1,12 @@
 from discord import ApplicationContext
+from discord import Bot
 from discord.ext.commands import Cog
 from discord.ext.commands import slash_command
 
 
 class Example(Cog):
-    def __init__(self, bot):
+
+    def __init__(self, bot: Bot):
         self.bot = bot
 
     @slash_command()

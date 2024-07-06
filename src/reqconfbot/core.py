@@ -1,4 +1,3 @@
-from abc import ABC
 from logging import DEBUG
 from os import getenv
 
@@ -7,7 +6,7 @@ from discord import Intents
 from discord import Message
 from dotenv import load_dotenv
 
-from reqconfbot.cogs.example import Example
+from reqconfbot.cogs.nethex import NethexCog
 from reqconfbot.customlogger import CustomFileHandler
 from reqconfbot.customlogger import createCustomLogger
 from reqconfbot.customlogger import getLogPath
@@ -16,7 +15,7 @@ from reqconfbot.nethexform import ViewSendModalRequest
 from reqconfbot.nethexform import ViewUserForm
 
 
-class CustomDiscordBot(Bot, ABC):
+class CustomDiscordBot(Bot):
     def __init__(self):
         super().__init__(getenv("DISCORD_BOT_PREFIX"), intents=Intents.default().all())
         self.__persistent_views_added = False
@@ -50,6 +49,6 @@ class CustomDiscordBot(Bot, ABC):
 load_dotenv("./reqconfbot/.env")
 
 bot = CustomDiscordBot()
-bot.add_cog(Example(bot))
+bot.add_cog(NethexCog(bot))
 
 logger = createCustomLogger(__name__, CustomFileHandler(getLogPath(getenv("LOG_FOLDER"))), DEBUG, True)
