@@ -30,8 +30,8 @@ _T = TypeVar("_T", bound=BasicGuild)
 
 class GuildJSONDatabase(ABC, Generic[_T]):
 
-    def __init__(self, json_filepath: Path) -> None:
-        self.__filepath = json_filepath / f"{self._getJSONFileName()}.json"
+    def __init__(self, json_database_folder: Path) -> None:
+        self.__filepath = json_database_folder / f"{self._getJSONFileName()}.json"
         self.__data = dict[int, _T]()
         self.__read()
 

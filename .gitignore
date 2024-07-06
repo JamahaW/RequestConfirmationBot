@@ -1,5 +1,0 @@
-.idea/
-/src/.env
-**.pyc
-logs/
-**/__pycache__/

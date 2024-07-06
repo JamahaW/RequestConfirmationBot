@@ -66,7 +66,7 @@ class ErrorsTyper:
 
 
 @dataclass()
-class EnvironmentData:
+class Environment:
     log_folder: Path
     database_folder: Path
     prefix: str

@@ -20,9 +20,9 @@ class NethexCog(Cog):
     COMMANDS_SEPARATOR: ClassVar[str] = ";"
     database: ClassVar[Optional[NethexJsonDatabase]] = None
 
-    def __init__(self, bot: Bot, json_database_path: Path):
+    def __init__(self, bot: Bot, json_database_folder: Path):
         self.bot = bot
-        self.__class__.database = NethexJsonDatabase(json_database_path)
+        self.__class__.database = NethexJsonDatabase(json_database_folder)
 
     @slash_command(name="form_master", description="Отправляет в данный текстовый канал настраиваемое сообщение с кнопок для отправки заявок")
     @has_permissions(administrator=True)
