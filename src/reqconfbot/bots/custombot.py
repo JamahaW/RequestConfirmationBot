@@ -31,8 +31,7 @@ class CustomBot(Bot, ABC):
             self.__persistent_views_added = True
             self.logger.info("persistent_views_added")
 
-    @staticmethod
-    async def on_message(message: Message):
+    async def on_message(self, message: Message):
         if message.author.bot:
             return
 

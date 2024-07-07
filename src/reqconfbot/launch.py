@@ -20,7 +20,7 @@ class BotType(Enum):
 def getBot(bot_type: BotType, env: Environment) -> CustomBot:
     match bot_type:
         case BotType.NETHEX:
-            return NethexBot(env.prefix, env.database_folder)
+            return NethexBot(env.prefix, env.databases_folder)
 
         case BotType.FORBIDDEN_TEAM:
             return ForbiddenBot(env)

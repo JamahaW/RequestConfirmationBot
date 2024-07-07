@@ -61,13 +61,13 @@ class ErrorsTyper:
 @dataclass()
 class Environment:
     log_folder: Path
-    database_folder: Path
+    databases_folder: Path
     prefix: str
     token: str = field(repr=False)
 
     def __init__(self, env_filepath: PathLike | str) -> None:
         load_dotenv(env_filepath)
         self.log_folder = Path(getenv("LOG_FOLDER"))
-        self.database_folder = Path(getenv("JSON_DATABASES_FOLDER"))
+        self.databases_folder = Path(getenv("JSON_DATABASES_FOLDER"))
         self.prefix = getenv("DISCORD_BOT_PREFIX")
         self.token = getenv("DISCORD_BOT_TOKEN")

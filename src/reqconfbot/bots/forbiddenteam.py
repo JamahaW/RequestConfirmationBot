@@ -13,4 +13,6 @@ class ForbiddenBot(CustomBot):
 
     def __init__(self, env: Environment) -> None:
         super().__init__(env.prefix)
-        self.add_cog(ForbiddenCog(self))
+        self.cog = ForbiddenCog(self, env.databases_folder)
+        self.add_cog(self.cog)
+        self.db = self.cog.database

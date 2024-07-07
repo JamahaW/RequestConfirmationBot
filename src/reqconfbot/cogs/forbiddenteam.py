@@ -1,5 +1,6 @@
 from enum import Enum
 from enum import auto
+from pathlib import Path
 from typing import ClassVar
 from typing import Optional
 
@@ -11,9 +12,13 @@ from discord import Embed
 from discord import EmbedFooter
 from discord import EmbedMedia
 from discord import Option
+from discord import TextChannel
 from discord import User
 from discord.ext.commands import Cog
+from discord.ext.commands import has_permissions
 from discord.ext.commands import slash_command
+
+from reqconfbot.databases.forbiddenteam import ForbiddenTeamGuildDatabase
 
 
 class MinecraftDimensionType(Enum):
@@ -82,11 +87,12 @@ class MinecraftCoordinatesEmbed(Embed):
 
 class ForbiddenCog(Cog):
 
-    def __init__(self, bot: Bot):
+    def __init__(self, bot: Bot, databases_folder: Path):
         self.bot = bot
+        self.database: ForbiddenTeamGuildDatabase = ForbiddenTeamGuildDatabase(databases_folder)
 
     @slash_command(name="coords")
-    async def showCoordinates(
+    async def sendCoords(
             self,
             context: ApplicationContext,
             name: Option(str, "Название позиции"),
@@ -97,8 +103,6 @@ class ForbiddenCog(Cog):
             rounding: Option(bool, "Округление", default=True),
             screenshot: Option(Attachment, required=False)
     ):
-        screenshot: Attachment
-
         await context.respond(embed=MinecraftCoordinatesEmbed(
             dimension=dimension,
             place_name=name,
@@ -107,3 +111,14 @@ class ForbiddenCog(Cog):
             rounding=rounding,
             screenshot=screenshot
         ))
+
+    @slash_command(name="coords_set_channel")
+    @has_permissions(administrator=True)
+    async def setCoordsChannel(
+            self,
+            context: ApplicationContext,
+            channel: TextChannel
+    ):
+        self.database.get(context.guild_id).coordinates_channel_id = channel.id
+        self.database.dump()
+        await context.respond(f"Теперь для координат используется канал {channel.jump_url}", ephemeral=True)
