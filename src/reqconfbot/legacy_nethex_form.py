@@ -200,6 +200,7 @@ class NethexFormDenyModal(ModalTextBuilder):
     async def callback(self, interaction: Interaction):
         await interaction.response.defer()
         self.embed.add_field(name=NethexForm.DENY_EMBED_FIELD_DENY_REASON, value=self.reason.value, inline=False)
+        await interaction.message.edit(embed=self.embed)
         await self.member.send(embed=self.embed)
 
 

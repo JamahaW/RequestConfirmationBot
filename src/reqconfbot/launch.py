@@ -32,7 +32,7 @@ def launchBot(env_filepath: PathLike | str):
     logger = createCustomLogger(__name__, CustomFileHandler(createLogFilepath(env.log_folder)), DEBUG, True)
     logger.info(f"env (public): {env}")
 
-    BOT_TYPE = BotType.FORBIDDEN_TEAM
+    BOT_TYPE = BotType.NETHEX
 
     bot = getBot(BOT_TYPE, env)
     bot.setLogger(logger)
