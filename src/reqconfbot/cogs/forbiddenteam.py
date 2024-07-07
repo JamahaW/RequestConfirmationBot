@@ -19,6 +19,7 @@ from discord.ext.commands import has_permissions
 from discord.ext.commands import slash_command
 
 from reqconfbot.databases.forbiddenteam import ForbiddenTeamGuildDatabase
+from reqconfbot.utils.tools import ErrorsTyper
 
 
 class MinecraftDimensionType(Enum):
@@ -103,14 +104,22 @@ class ForbiddenCog(Cog):
             rounding: Option(bool, "Округление", default=True),
             screenshot: Option(Attachment, required=False)
     ):
-        await context.respond(embed=MinecraftCoordinatesEmbed(
-            dimension=dimension,
-            place_name=name,
-            suggested_user=context.user,
-            coords=(x, y, z),
-            rounding=rounding,
-            screenshot=screenshot
-        ))
+        err = ErrorsTyper()
+        coords_channel = self.database.get(context.guild_id).coordinates_channel_id
+
+        if coords_channel is None:
+            err.add("Канал для вывода координат ещё не настроен")
+            await err.respond(context)
+            return
+
+        if context.channel.id != coords_channel:
+            err.add("В этом канале нельзя выводить координаты")
+            await err.respond(context)
+            return
+
+        embed = MinecraftCoordinatesEmbed(dimension=dimension, place_name=name, suggested_user=context.user, coords=(x, y, z), rounding=rounding, screenshot=screenshot)
+        await context.respond("готово", ephemeral=True)
+        await context.send(embed=embed)
 
     @slash_command(name="coords_set_channel")
     @has_permissions(administrator=True)
