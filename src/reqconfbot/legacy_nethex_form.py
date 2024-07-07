@@ -88,10 +88,11 @@ class PanelCreatorModal(ModalTextBuilder):
         ))
 
     async def callback(self, interaction: Interaction):
-        await interaction.response.send_message(
+        await interaction.channel.send(
             embed=PanelCreatorEmbed(self),
             view=NethexPanelCreatorView()
         )
+        await interaction.respond("успешно отправлено", ephemeral=True)
 
 
 class NethexFormEmbed(Embed):
