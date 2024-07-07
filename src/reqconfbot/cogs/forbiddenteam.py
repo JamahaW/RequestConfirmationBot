@@ -46,11 +46,11 @@ class MinecraftCoordinatesEmbed(Embed):
         return f"{value:<{cls.INTEND}}"
 
     @staticmethod
-    def getCoordString(rounding, value):
+    def getCoordString(value: int, rounding: bool) -> str:
         if value is None:
             return "~"
 
-        return round(value, -1) if rounding else value
+        return f"{round(value, -1) if rounding else value}"
 
     @classmethod
     def getCoordinatesString(cls, coords: _coords_type, rounding: bool) -> str:
