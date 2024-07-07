@@ -4,11 +4,13 @@ from typing import ClassVar
 from typing import Optional
 
 from discord import ApplicationContext
+from discord import Attachment
 from discord import Bot
 from discord import Color
 from discord import Embed
 from discord import EmbedField
 from discord import EmbedFooter
+from discord import EmbedMedia
 from discord import Option
 from discord import User
 from discord.ext.commands import Cog
@@ -70,7 +72,8 @@ class MinecraftCoordinatesEmbed(Embed):
             place_name: str,
             suggested_user: User,
             coords: _coords_type,
-            rounding: bool
+            rounding: bool,
+            screenshot: Optional[Attachment]
     ):
         super().__init__(
             color=self.getDimensionColor(dimension),
@@ -78,6 +81,9 @@ class MinecraftCoordinatesEmbed(Embed):
             footer=EmbedFooter(suggested_user.name, suggested_user.avatar.url),
             fields=self.buildFields(coords, rounding)
         )
+
+        if screenshot is not None:
+            self.image = EmbedMedia(screenshot.url)
 
 
 class ForbiddenCog(Cog):
@@ -94,12 +100,16 @@ class ForbiddenCog(Cog):
             x: Option(int, "Позиция X"),
             z: Option(int, "Позиция Z"),
             y: Option(int, "Позиция Y", default=None),
-            rounding: Option(bool, "Округление", default=True)
+            rounding: Option(bool, "Округление", default=True),
+            screenshot: Option(Attachment, required=False)
     ):
+        screenshot: Attachment
+
         await context.respond(embed=MinecraftCoordinatesEmbed(
             dimension=dimension,
             place_name=name,
             suggested_user=context.user,
             coords=(x, y, z),
-            rounding=rounding
+            rounding=rounding,
+            screenshot=screenshot
         ))
