@@ -129,7 +129,7 @@ class NethexFormButton(Button["ViewUserForm"], ABC):
     def __init__(self, label: str, style: ButtonStyle, color: Color, status: str):
         super().__init__(label=label, custom_id=f"ButtonUserForm:{label}", style=style)
         self.status = status
-        self.color = color
+        self.embed_status_color = color
 
     @abstractmethod
     async def memberProcess(self, interaction: Interaction, member: Member, embed: Embed, nickname: str):
@@ -137,15 +137,18 @@ class NethexFormButton(Button["ViewUserForm"], ABC):
 
     async def callback(self, interaction: Interaction):
         self.view.disable_all_items()
-        embed = interaction.message.embeds[0]
-        await self.updateEmbedStatus(embed)
-
+        embed = self.updateEmbed(interaction.message.embeds[0])
         member, nickname = await self.getMemberAndNickname(embed, interaction)
         await self.memberProcess(interaction, member, embed, nickname)
         await interaction.edit(view=self.view, embed=embed)
 
-    async def updateEmbedStatus(self, embed):
-        embed.title = f"{self.status} ({embed.author.name})"
+    def updateEmbed(self, e: Embed) -> Embed:
+        return Embed(
+            color=self.embed_status_color,
+            title=f"{self.status} ({e.author.name})",
+            fields=e.fields,
+            footer=e.footer
+        )
 
     @staticmethod
     async def getMemberAndNickname(embed, interaction):
@@ -161,7 +164,6 @@ class NethexFormApplyButtonButton(NethexFormButton):
         super().__init__(label=NethexForm.APPLY_BUTTON_LABEL, style=ButtonStyle.green, color=Color.green(), status=NethexForm.APPLY_BUTTON_STATUS)
 
     async def memberProcess(self, interaction: Interaction, member: Member, embed: Embed, nickname: str):
-        embed.add_field(name="Сервер", value=interaction.guild.name, inline=True)
         await member.send(embed=embed)
         await self.sendCommands(interaction, member, nickname)
 
