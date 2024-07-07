@@ -8,7 +8,6 @@ from discord import Attachment
 from discord import Bot
 from discord import Color
 from discord import Embed
-from discord import EmbedField
 from discord import EmbedFooter
 from discord import EmbedMedia
 from discord import Option
@@ -26,23 +25,12 @@ class MinecraftDimensionType(Enum):
         return self.name.capitalize()
 
 
-class MinecraftCoordinateEmbedField(EmbedField):
-
-    @staticmethod
-    def getCoordinateString(value: Optional[int], rounding: bool) -> str:
-        if value is None:
-            return "~"
-
-        return f"{round(value, -1) if rounding else value}"
-
-    def __init__(self, name: str, value: Optional[int], rounding: bool):
-        super().__init__(name, self.getCoordinateString(value, rounding), True)
-
-
 _coords_type = tuple[int, Optional[int], int]
 
 
 class MinecraftCoordinatesEmbed(Embed):
+    INTEND = 5
+
     DIMENSIONS_COLORS: ClassVar[dict[MinecraftDimensionType, Color]] = {
         MinecraftDimensionType.OVERWORLD: Color.brand_green(),
         MinecraftDimensionType.NETHER: Color.red(),
@@ -54,17 +42,23 @@ class MinecraftCoordinatesEmbed(Embed):
         return cls.DIMENSIONS_COLORS[dimension]
 
     @classmethod
-    def buildFields(cls, coords: _coords_type, rounding: bool) -> list[EmbedField]:
-        x, y, z = coords
-        return [
-            MinecraftCoordinateEmbedField("x", x, rounding),
-            MinecraftCoordinateEmbedField("y", y, False),
-            MinecraftCoordinateEmbedField("z", z, rounding),
-        ]
+    def formatCoord(cls, value: str) -> str:
+        return f"{value:<{cls.INTEND}}"
+
+    @staticmethod
+    def getCoordString(rounding, value):
+        if value is None:
+            return "~"
+
+        return round(value, -1) if rounding else value
 
     @classmethod
-    def getTitle(cls, place_name: str, dimension: MinecraftDimensionType) -> str:
-        return f"{place_name.capitalize()} ({dimension.name.capitalize()})"
+    def getCoordinatesString(cls, coords: _coords_type, rounding: bool) -> str:
+        x, y, z = coords
+        x = cls.formatCoord(cls.getCoordString(x, rounding))
+        y = cls.formatCoord(cls.getCoordString(y, False))
+        z = cls.formatCoord(cls.getCoordString(z, rounding))
+        return f"```fix\n{x} {y} {z}\n```"
 
     def __init__(
             self, *,
@@ -77,10 +71,10 @@ class MinecraftCoordinatesEmbed(Embed):
     ):
         super().__init__(
             color=self.getDimensionColor(dimension),
-            title=self.getTitle(place_name, dimension),
-            footer=EmbedFooter(suggested_user.name, suggested_user.avatar.url),
-            fields=self.buildFields(coords, rounding)
+            title=place_name.capitalize(),
+            footer=EmbedFooter(suggested_user.name, suggested_user.avatar.url)
         )
+        self.add_field(name=dimension.name.capitalize(), value=self.getCoordinatesString(coords, rounding))
 
         if screenshot is not None:
             self.image = EmbedMedia(screenshot.url)
