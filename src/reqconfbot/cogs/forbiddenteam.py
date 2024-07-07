@@ -31,10 +31,7 @@ class MinecraftCoordinateEmbedField(EmbedField):
         if value is None:
             return "~"
 
-        if rounding:
-            value = round(value, -1)
-
-        return f"{value}"
+        return f"{round(value, -1) if rounding else value}"
 
     def __init__(self, name: str, value: Optional[int], rounding: bool):
         super().__init__(name, self.getCoordinateString(value, rounding), True)
