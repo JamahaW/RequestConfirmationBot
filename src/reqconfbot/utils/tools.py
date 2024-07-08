@@ -10,9 +10,20 @@ from pathlib import Path
 from typing import Final
 
 from discord import ApplicationContext
+from discord import Guild
+from discord import Interaction
+from discord import Member
 from dotenv import load_dotenv
 
 TIME_FORMAT: Final[str] = "%d-%m-%Y_%H-%M-%S"
+
+
+def getMemberByID(user_id: int, guild: Guild) -> Member:
+    return guild.get_member(user_id)
+
+
+def datetimeNow() -> str:
+    return datetimeString(datetime.now(), "%d.%m %H:%M")
 
 
 def datetimeString(dt: datetime, fmt: str = TIME_FORMAT) -> str:
@@ -54,7 +65,7 @@ class ErrorsTyper:
     def __str__(self) -> str:
         return self.__string_builder.toString()
 
-    async def respond(self, context: ApplicationContext):
+    async def respond(self, context: ApplicationContext | Interaction):
         await context.respond(self.__str__(), ephemeral=True)
 
 

@@ -4,12 +4,14 @@ from typing import Callable
 from discord import ApplicationContext
 from discord import Attachment
 from discord import Bot
+from discord import Embed
 from discord import Option
 from discord import Role
 from discord import TextChannel
 from discord.ext.commands import Cog
 from discord.ext.commands import has_permissions
 from discord.ext.commands import slash_command
+from discord.ui import View
 
 from reqconfbot.databases.zapretniki import ZapretnikiDatabase
 from reqconfbot.databases.zapretniki import ZapretnikiGuild
@@ -17,6 +19,7 @@ from reqconfbot.special.zapretniki import CoordinatesEmbed
 from reqconfbot.special.zapretniki import CoordinatesEmbedField
 from reqconfbot.special.zapretniki import Dimension
 from reqconfbot.special.zapretniki import TaskEmbed
+from reqconfbot.special.zapretniki import TaskView
 from reqconfbot.utils.tools import ErrorsTyper
 
 
@@ -88,11 +91,9 @@ class ZapretnikiCog(Cog):
             await self.__sendErrorImmediately(context, "Канал для вывода заданий ещё не настроен")
             return
 
-        embed = TaskEmbed(context.user, role, text)
+        await self.__sendEmbedMessage(context, data.tasks_channel_id, TaskEmbed(context.user, role, text), "Задание отправлено", TaskView())
 
-        await self.__sendEmbedMessage(context, data.tasks_channel_id, embed, "Задание отправлено")
-
-    async def __sendEmbedMessage(self, context, channel_id: int, embed, msg):
+    async def __sendEmbedMessage(self, context: ApplicationContext, channel_id: int, embed: Embed, msg: str, view: View = None):
         channel = self.__getChannel(context, channel_id)
-        await channel.send(embed=embed)
+        await channel.send(embed=embed, view=view)
         await context.respond(f"{msg} {channel.jump_url}", ephemeral=True)

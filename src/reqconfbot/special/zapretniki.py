@@ -1,11 +1,12 @@
 from __future__ import annotations
 
-from datetime import datetime
 from enum import Enum
 from enum import auto
+from typing import ClassVar
 from typing import Optional
 
 from discord import Attachment
+from discord import ButtonStyle
 from discord import Color
 from discord import Embed
 from discord import EmbedAuthor
@@ -13,11 +14,17 @@ from discord import EmbedField
 from discord import EmbedFooter
 from discord import EmbedMedia
 from discord import Guild
+from discord import Interaction
 from discord import Member
 from discord import Role
 from discord import User
+from discord.ui import Button
+from discord.ui import View
+from discord.ui import button
 
-from reqconfbot.utils.tools import datetimeString
+from reqconfbot.utils.tools import ErrorsTyper
+from reqconfbot.utils.tools import datetimeNow
+from reqconfbot.utils.tools import getMemberByID
 
 
 class Dimension(Enum):
@@ -73,14 +80,29 @@ class CoordinatesEmbed(Embed):
             self.image = EmbedMedia(screenshot.url)
 
 
-class ActiveUserEmbedField(EmbedField):
+class TaskEmbedField(EmbedField):
 
     @staticmethod
-    def fromID(user_id: int, inline: bool, guild: Guild) -> ActiveUserEmbedField:
-        return ActiveUserEmbedField(guild.get_member(user_id), inline)
+    def fromID(user_id: int, inline: bool, guild: Guild) -> TaskEmbedField:
+        return TaskEmbedField(getMemberByID(user_id, guild))
 
-    def __init__(self, user: User | Member, inline: bool) -> None:
-        super().__init__(datetimeString(datetime.now(), "%d.%m %H:%M"), user.mention, inline)
+    def __init__(self, user: User | Member) -> None:
+        super().__init__(datetimeNow(), user.mention, True)
+
+
+class FooterPacker:
+    VALUE_SEPARATOR: ClassVar[str] = ";"
+
+    def __init__(self, footer: EmbedFooter, guild: Guild) -> None:
+        suggested, *actives = map(
+            lambda s: getMemberByID(int(s), guild),
+            footer.text.split(self.VALUE_SEPARATOR)
+        )
+        self.suggested: User = suggested
+        self.actives: list[int] = list(a.id for a in actives)
+
+    def pack(self) -> EmbedFooter:
+        return EmbedFooter(self.VALUE_SEPARATOR.join((str(i) for i in ([self.suggested.id] + self.actives))))
 
 
 class TaskEmbed(Embed):
@@ -90,7 +112,60 @@ class TaskEmbed(Embed):
             color=role.color,
             author=EmbedAuthor(suggested_user.name, icon_url=suggested_user.avatar),
             description=f"### {role.mention}\n```fix\n{text.capitalize()}\n```",
-            fields=[
-                ActiveUserEmbedField(suggested_user, False)
-            ]
+            footer=EmbedFooter(f"{suggested_user.id}")
         )
+
+
+class TaskView(View):
+    MAX_USERS: ClassVar[int] = 25
+
+    def __init__(self):
+        super().__init__(timeout=None)
+
+    @staticmethod
+    def __parseMessage(interaction: Interaction) -> tuple[Embed, FooterPacker]:
+        e = interaction.message.embeds[0]
+        return e, (FooterPacker(e.footer, interaction.guild))
+
+    @button(label="Учавствовать", custom_id="TaskView::add_active_user", style=ButtonStyle.blurple)
+    async def add_active_user(self, _: Button, interaction: Interaction):
+        embed, footer_packer = self.__parseMessage(interaction)
+        err = ErrorsTyper()
+
+        if interaction.user.id in footer_packer.actives:
+            err.add("Вы уже участвуете в этом задании!")
+
+        if len(embed.fields) == self.MAX_USERS:
+            err.add("Из-за ограничений платформы может участвовать не более {0} человек".format(self.MAX_USERS))
+
+        if err.isFailed():
+            await err.respond(interaction)
+            return
+
+        footer_packer.actives.append(interaction.user.id)
+        embed.fields.append(TaskEmbedField(interaction.user))
+        embed.footer = footer_packer.pack()
+
+        await interaction.edit(embed=embed)
+
+    @button(label="Готово", custom_id="TaskView::send_task_status_done", style=ButtonStyle.green)
+    async def send_task_status_done(self, _: Button, interaction: Interaction):
+        embed, footer_packer = self.__parseMessage(interaction)
+        err = ErrorsTyper()
+
+        if footer_packer.suggested.id != interaction.user.id:
+            err.add("Помечать как готовое может только создатель задания")
+
+        if embed.footer is None:
+            err.add("Задание уже выполнено!")
+
+        if err.isFailed():
+            await err.respond(interaction)
+            return
+
+        self.disable_all_items()
+        embed.description = f"# Готово\n{datetimeNow()}\n{embed.description}"
+        embed.remove_footer()
+
+        await interaction.message.edit(embed=embed, view=self)
+        await interaction.respond("Задание завершено!", ephemeral=True)
