@@ -3,7 +3,7 @@ from typing import Iterable
 from discord.ui import View
 
 from reqconfbot.bots.custombot import CustomBot
-from reqconfbot.cogs.zapretniki import ForbiddenCog
+from reqconfbot.cogs.zapretniki import ZapretnikiCog
 from reqconfbot.utils.tools import Environment
 
 
@@ -13,4 +13,4 @@ class ZapretnikiBot(CustomBot):
 
     def __init__(self, env: Environment) -> None:
         super().__init__(env.prefix)
-        self.add_cog(ForbiddenCog(self, env.databases_folder))
+        self.add_cog(ZapretnikiCog(self, env.databases_folder))
