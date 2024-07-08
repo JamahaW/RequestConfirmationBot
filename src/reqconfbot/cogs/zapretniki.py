@@ -42,7 +42,7 @@ class ZapretnikiCog(Cog):
     async def setCoordsChannel(self, context: ApplicationContext, channel: TextChannel):
         await self.__setOutputChannel(context, channel, "Координаты", ZapretnikiGuild.setCoordinatesChannelID)
 
-    @slash_command(name="tasks_setup")
+    @slash_command(name="tasks_set_channel")
     @has_permissions(administrator=True)
     async def setTasksChannel(self, context: ApplicationContext, channel: TextChannel, ):
         await self.__setOutputChannel(context, channel, "Задания", ZapretnikiGuild.setTasksChannelID)

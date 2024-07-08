@@ -83,7 +83,7 @@ class CoordinatesEmbed(Embed):
 class TaskEmbedField(EmbedField):
 
     @staticmethod
-    def fromID(user_id: int, inline: bool, guild: Guild) -> TaskEmbedField:
+    def fromID(user_id: int, guild: Guild) -> TaskEmbedField:
         return TaskEmbedField(getMemberByID(user_id, guild))
 
     def __init__(self, user: User | Member) -> None:
@@ -93,16 +93,18 @@ class TaskEmbedField(EmbedField):
 class FooterPacker:
     VALUE_SEPARATOR: ClassVar[str] = ";"
 
-    def __init__(self, footer: EmbedFooter, guild: Guild) -> None:
-        suggested, *actives = map(
-            lambda s: getMemberByID(int(s), guild),
-            footer.text.split(self.VALUE_SEPARATOR)
-        )
-        self.suggested: User = suggested
-        self.actives: list[int] = list(a.id for a in actives)
+    def __init__(self, footer: EmbedFooter) -> None:
+        suggested, role, *actives = map(int, footer.text.split(self.VALUE_SEPARATOR))
+        self.suggested_user_id: int = suggested
+        self.speciality_id = role
+        self.active_ids: list[int] = list(a.id for a in actives)
+
+    @classmethod
+    def cleanFooter(cls, suggested: User, speciality: Role) -> EmbedFooter:
+        return EmbedFooter(f"{suggested.id}{cls.VALUE_SEPARATOR}{speciality.id}")
 
     def pack(self) -> EmbedFooter:
-        return EmbedFooter(self.VALUE_SEPARATOR.join((str(i) for i in ([self.suggested.id] + self.actives))))
+        return EmbedFooter(self.VALUE_SEPARATOR.join((str(i) for i in ([self.suggested_user_id] + self.active_ids))))
 
 
 class TaskEmbed(Embed):
@@ -112,7 +114,7 @@ class TaskEmbed(Embed):
             color=role.color,
             author=EmbedAuthor(suggested_user.name, icon_url=suggested_user.avatar),
             description=f"### {role.mention}\n```fix\n{text.capitalize()}\n```",
-            footer=EmbedFooter(f"{suggested_user.id}")
+            footer=FooterPacker.cleanFooter(suggested_user, role)
         )
 
 
@@ -125,15 +127,20 @@ class TaskView(View):
     @staticmethod
     def __parseMessage(interaction: Interaction) -> tuple[Embed, FooterPacker]:
         e = interaction.message.embeds[0]
-        return e, (FooterPacker(e.footer, interaction.guild))
+        return e, (FooterPacker(e.footer))
 
     @button(label="Учавствовать", custom_id="TaskView::add_active_user", style=ButtonStyle.blurple)
     async def add_active_user(self, _: Button, interaction: Interaction):
         embed, footer_packer = self.__parseMessage(interaction)
         err = ErrorsTyper()
 
-        if interaction.user.id in footer_packer.actives:
+        if interaction.user.id in footer_packer.active_ids:
             err.add("Вы уже участвуете в этом задании!")
+
+        need_role = interaction.guild.get_role(footer_packer.speciality_id)
+
+        if need_role not in interaction.user.roles:
+            err.add(f"Для выполнения этого задания нужна специальность {need_role.mention}")
 
         if len(embed.fields) == self.MAX_USERS:
             err.add("Из-за ограничений платформы может участвовать не более {0} человек".format(self.MAX_USERS))
@@ -142,7 +149,7 @@ class TaskView(View):
             await err.respond(interaction)
             return
 
-        footer_packer.actives.append(interaction.user.id)
+        footer_packer.active_ids.append(interaction.user.id)
         embed.fields.append(TaskEmbedField(interaction.user))
         embed.footer = footer_packer.pack()
 
@@ -153,7 +160,7 @@ class TaskView(View):
         embed, footer_packer = self.__parseMessage(interaction)
         err = ErrorsTyper()
 
-        if footer_packer.suggested.id != interaction.user.id:
+        if footer_packer.suggested_user_id != interaction.user.id:
             err.add("Помечать как готовое может только создатель задания")
 
         if embed.footer is None:
