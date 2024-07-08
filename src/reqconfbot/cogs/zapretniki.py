@@ -1,4 +1,5 @@
 from pathlib import Path
+from typing import Callable
 
 from discord import ApplicationContext
 from discord import Attachment
@@ -10,9 +11,10 @@ from discord.ext.commands import has_permissions
 from discord.ext.commands import slash_command
 
 from reqconfbot.databases.zapretniki import ZapretnikiDatabase
-from reqconfbot.embeds.zapretniki import CoordinatesEmbed
-from reqconfbot.embeds.zapretniki import CoordinatesEmbedField
-from reqconfbot.embeds.zapretniki import Dimension
+from reqconfbot.databases.zapretniki import ZapretnikiGuild
+from reqconfbot.special.zapretniki import CoordinatesEmbed
+from reqconfbot.special.zapretniki import CoordinatesEmbedField
+from reqconfbot.special.zapretniki import Dimension
 from reqconfbot.utils.tools import ErrorsTyper
 
 
@@ -24,8 +26,7 @@ class ZapretnikiCog(Cog):
 
     @slash_command(name="coords")
     async def sendCoords(
-            self,
-            context: ApplicationContext,
+            self, context: ApplicationContext,
             name: Option(str, "Название позиции"),
             dimension: Option(Dimension, "Измерение"),
             x: Option(int, "Позиция X"),
@@ -51,13 +52,17 @@ class ZapretnikiCog(Cog):
         await coords_channel.send(embed=CoordinatesEmbed(context.user, name, dimension, coords, screenshot))
         await context.respond(f"Координаты отправлены в {coords_channel.jump_url}", ephemeral=True)
 
+    async def __setOutputChannel(self, context: ApplicationContext, channel: TextChannel, speciality: str, setter: Callable[[ZapretnikiGuild, int], None]):
+        setter(self.database.get(context.guild_id), channel.id)
+        await context.respond(f"{speciality} будут отправляться в {channel.jump_url}", ephemeral=True)
+        self.database.dump()
+
     @slash_command(name="coords_set_channel")
     @has_permissions(administrator=True)
-    async def setCoordsChannel(
-            self,
-            context: ApplicationContext,
-            channel: TextChannel
-    ):
-        self.database.get(context.guild_id).coordinates_channel_id = channel.id
-        self.database.dump()
-        await context.respond(f"Координаты будут отправляться в {channel.jump_url}", ephemeral=True)
+    async def setCoordsChannel(self, context: ApplicationContext, channel: TextChannel):
+        await self.__setOutputChannel(context, channel, "Координаты", ZapretnikiGuild.setCoordinatesChannelID)
+
+    @slash_command(name="tasks_set_channel")
+    @has_permissions(administrator=True)
+    async def setTasksChannel(self, context: ApplicationContext, channel: TextChannel):
+        await self.__setOutputChannel(context, channel, "Задания", ZapretnikiGuild.setTasksChannelID)

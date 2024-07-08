@@ -1,7 +1,7 @@
-from dataclasses import dataclass
+from __future__ import annotations
 
-from discord import Guild
-from discord import TextChannel
+from dataclasses import dataclass
+from typing import Optional
 
 from reqconfbot.databases import BasicGuild
 from reqconfbot.databases import GuildJSONDatabase
@@ -9,10 +9,16 @@ from reqconfbot.databases import GuildJSONDatabase
 
 @dataclass
 class ZapretnikiGuild(BasicGuild):
-    coordinates_channel_id: int = None
+    coordinates_channel_id: Optional[int] = None
+    tasks_channel_id: Optional[int] = None
 
-    def getCoordinatedChannel(self, guild: Guild) -> TextChannel:
-        return guild.get_channel(self.coordinates_channel_id)
+    @staticmethod
+    def setCoordinatesChannelID(self: ZapretnikiGuild, channel_id: int) -> None:
+        self.coordinates_channel_id = channel_id
+
+    @staticmethod
+    def setTasksChannelID(self: ZapretnikiGuild, channel_id: int) -> None:
+        self.tasks_channel_id = channel_id
 
 
 class ZapretnikiDatabase(GuildJSONDatabase[ZapretnikiGuild]):
