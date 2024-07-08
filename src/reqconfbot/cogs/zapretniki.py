@@ -83,7 +83,7 @@ class ZapretnikiCog(Cog):
     def __getChannel(context: ApplicationContext, channel_id: int) -> TextChannel:
         return context.guild.get_channel(channel_id)
 
-    @slash_command(name="task_add")
+    @slash_command(name="task")
     async def addTask(self, context: ApplicationContext, role: Option(Role, "Для какой специализации эта задача"), text: str):
         data = self.__getGuildData(context)
 
