@@ -15,8 +15,8 @@ from dotenv import load_dotenv
 TIME_FORMAT: Final[str] = "%d-%m-%Y_%H-%M-%S"
 
 
-def datetimeString(dt: datetime) -> str:
-    return f"{dt:{TIME_FORMAT}}"
+def datetimeString(dt: datetime, fmt: str = TIME_FORMAT) -> str:
+    return f"{dt:{fmt}}"
 
 
 class StringBuilder(StringIO):

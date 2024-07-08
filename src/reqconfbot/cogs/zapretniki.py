@@ -4,7 +4,6 @@ from typing import Callable
 from discord import ApplicationContext
 from discord import Attachment
 from discord import Bot
-from discord import Embed
 from discord import Option
 from discord import Role
 from discord import TextChannel
@@ -17,6 +16,7 @@ from reqconfbot.databases.zapretniki import ZapretnikiGuild
 from reqconfbot.special.zapretniki import CoordinatesEmbed
 from reqconfbot.special.zapretniki import CoordinatesEmbedField
 from reqconfbot.special.zapretniki import Dimension
+from reqconfbot.special.zapretniki import TaskEmbed
 from reqconfbot.utils.tools import ErrorsTyper
 
 
@@ -41,7 +41,7 @@ class ZapretnikiCog(Cog):
 
     @slash_command(name="tasks_setup")
     @has_permissions(administrator=True)
-    async def setTasksChannel(self, context: ApplicationContext, channel: TextChannel,):
+    async def setTasksChannel(self, context: ApplicationContext, channel: TextChannel, ):
         await self.__setOutputChannel(context, channel, "Задания", ZapretnikiGuild.setTasksChannelID)
 
     @slash_command(name="coords")
@@ -81,20 +81,15 @@ class ZapretnikiCog(Cog):
         return context.guild.get_channel(channel_id)
 
     @slash_command(name="task_add")
-    async def addTask(
-            self,
-            context: ApplicationContext,
-            role: Role,
-            text: str
-    ):
+    async def addTask(self, context: ApplicationContext, role: Option(Role, "Для какой специализации эта задача"), text: str):
         data = self.__getGuildData(context)
 
         if data.tasks_channel_id is None:
             await self.__sendErrorImmediately(context, "Канал для вывода заданий ещё не настроен")
             return
 
-        embed = Embed(title=f"{text}", color=role.color)
-        embed.add_field(name="test", value=role.mention)
+        embed = TaskEmbed(context.user, role, text)
+
         await self.__sendEmbedMessage(context, data.tasks_channel_id, embed, "Задание отправлено")
 
     async def __sendEmbedMessage(self, context, channel_id: int, embed, msg):
