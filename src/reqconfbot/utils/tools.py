@@ -40,7 +40,7 @@ class StringBuilder(StringIO):
 
 class ErrorsTyper:
 
-    def __init__(self, title: str = "**Возникли ошибки, вот пути решения:**") -> None:
+    def __init__(self, title: str = "**Возникли ошибки:**") -> None:
         self.__string_builder = StringBuilder(title)
         self.__failed = False
 
@@ -58,7 +58,7 @@ class ErrorsTyper:
         await context.respond(self.__str__(), ephemeral=True)
 
 
-@dataclass()
+@dataclass
 class Environment:
     log_folder: Path
     databases_folder: Path

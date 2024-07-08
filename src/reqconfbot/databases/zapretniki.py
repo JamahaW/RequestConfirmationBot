@@ -20,7 +20,7 @@ class ZapretnikiDatabase(GuildJSONDatabase[ZapretnikiGuild]):
         return ZapretnikiGuild(**data)
 
     def _getJSONFileName(self) -> str:
-        return "forbidden_team"
+        return "zapretniki"
 
     def _createGuildData(self, guild_id: int) -> ZapretnikiGuild:
         return ZapretnikiGuild(guild_id)
