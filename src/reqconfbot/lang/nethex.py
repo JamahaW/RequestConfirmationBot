@@ -1,4 +1,4 @@
-class NethexForm:
+class NethexLang:
     EMBED_TITLE = "Заявка от {0}"
     EMBED_FIELD_NAME = "Никнейм"
     EMBED_FIELD_SERVERS_PLAYED_ON = "Играл на серверах:"

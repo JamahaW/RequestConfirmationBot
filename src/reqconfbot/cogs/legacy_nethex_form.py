@@ -21,8 +21,8 @@ from discord.ui import InputText
 from discord.ui import Modal
 from discord.ui import View
 
-from reqconfbot.constants.nethex import NethexForm
-from reqconfbot.constants.panelcreator import PanelCreator
+from reqconfbot.lang.nethex import NethexLang
+from reqconfbot.lang.panelcreator import PanelCreatorLang
 
 
 class ModalTextBuilder(Modal):
@@ -32,8 +32,8 @@ class ModalTextBuilder(Modal):
         return inputText
 
 
-class PanelCreatorEmbed(Embed):
-    def __init__(self, createPanelModal: PanelCreatorModal):
+class PanelCreatorLangEmbed(Embed):
+    def __init__(self, createPanelModal: PanelCreatorLangModal):
         super().__init__(
             author=EmbedAuthor(createPanelModal.author.value),
             thumbnail=createPanelModal.thumbnail_url.value,
@@ -44,53 +44,53 @@ class PanelCreatorEmbed(Embed):
         )
 
 
-class PanelCreatorModal(ModalTextBuilder):
+class PanelCreatorLangModal(ModalTextBuilder):
 
     def __init__(self):
-        super().__init__(title=PanelCreator.MODAL_TITLE)
+        super().__init__(title=PanelCreatorLang.MODAL_TITLE)
 
         self.author = self.add(InputText(
-            label=PanelCreator.MODAL_AUTHOR_LABEL,
-            placeholder=PanelCreator.MODAL_AUTHOR_PLACEHOLDER,
+            label=PanelCreatorLang.MODAL_AUTHOR_LABEL,
+            placeholder=PanelCreatorLang.MODAL_AUTHOR_PLACEHOLDER,
             min_length=4,
             max_length=32,
             style=InputTextStyle.singleline
         ))
 
         self.thumbnail_url = self.add(InputText(
-            label=PanelCreator.MODAL_THUMBNAIL_URL_LABEL,
-            placeholder=PanelCreator.MODAL_THUMBNAIL_URL_PLACEHOLDER,
+            label=PanelCreatorLang.MODAL_THUMBNAIL_URL_LABEL,
+            placeholder=PanelCreatorLang.MODAL_THUMBNAIL_URL_PLACEHOLDER,
             style=InputTextStyle.short,
             required=False
         ))
 
         self.theme = self.add(InputText(
-            label=PanelCreator.MODAL_THEME_LABEL,
-            placeholder=PanelCreator.MODAL_THEME_PLACEHOLDER,
+            label=PanelCreatorLang.MODAL_THEME_LABEL,
+            placeholder=PanelCreatorLang.MODAL_THEME_PLACEHOLDER,
             min_length=8,
             max_length=40,
             style=InputTextStyle.singleline
         ))
 
         self.description = self.add(InputText(
-            label=PanelCreator.MODAL_DESCRIPTION_LABEL,
-            placeholder=PanelCreator.MODAL_DESCRIPTION_PLACEHOLDER,
+            label=PanelCreatorLang.MODAL_DESCRIPTION_LABEL,
+            placeholder=PanelCreatorLang.MODAL_DESCRIPTION_PLACEHOLDER,
             min_length=20,
             max_length=1000,
             style=InputTextStyle.long
         ))
 
         self.banner_url = self.add(InputText(
-            label=PanelCreator.MODAL_BANNER_URL_LABEL,
-            placeholder=PanelCreator.MODAL_BANNER_URL_PLACEHOLDER,
+            label=PanelCreatorLang.MODAL_BANNER_URL_LABEL,
+            placeholder=PanelCreatorLang.MODAL_BANNER_URL_PLACEHOLDER,
             style=InputTextStyle.short,
             required=False
         ))
 
     async def callback(self, interaction: Interaction):
         await interaction.channel.send(
-            embed=PanelCreatorEmbed(self),
-            view=NethexPanelCreatorView()
+            embed=PanelCreatorLangEmbed(self),
+            view=NethexPanelCreatorLangView()
         )
         await interaction.respond("успешно отправлено", ephemeral=True)
 
@@ -110,19 +110,19 @@ class NethexFormEmbed(Embed):
     def __init__(self, parent_interaction: Interaction, modal: NethexFormModal):
         user = parent_interaction.user
         super().__init__(
-            title=NethexForm.EMBED_TITLE.format(user.name),
+            title=NethexLang.EMBED_TITLE.format(user.name),
             color=Color.gold(),
             author=EmbedAuthor(name=user.display_name, icon_url=user.display_avatar.url),
             footer=self.dumpInFooter(user, modal.minecraft_nickname.value),
             thumbnail=user.display_avatar.url
         )
 
-        self.add_field(name=NethexForm.EMBED_FIELD_NAME, value=modal.minecraft_nickname.value, inline=True)
-        self.add_field(name=NethexForm.EMBED_FIELD_SERVERS_PLAYED_ON, value=modal.played_servers.value, inline=False)
-        self.add_field(name=NethexForm.EMBED_FIELD_SEASON_PLANNINGS, value=modal.user_plannings.value, inline=False)
+        self.add_field(name=NethexLang.EMBED_FIELD_NAME, value=modal.minecraft_nickname.value, inline=True)
+        self.add_field(name=NethexLang.EMBED_FIELD_SERVERS_PLAYED_ON, value=modal.played_servers.value, inline=False)
+        self.add_field(name=NethexLang.EMBED_FIELD_SEASON_PLANNINGS, value=modal.user_plannings.value, inline=False)
 
         if modal.etc.value:
-            self.add_field(name=NethexForm.EMBED_FIELD_INFO, value=modal.etc.value, inline=False)
+            self.add_field(name=NethexLang.EMBED_FIELD_INFO, value=modal.etc.value, inline=False)
 
 
 class NethexFormButton(Button["ViewUserForm"], ABC):
@@ -162,7 +162,7 @@ class NethexFormButton(Button["ViewUserForm"], ABC):
 
 class NethexFormApplyButtonButton(NethexFormButton):
     def __init__(self):
-        super().__init__(label=NethexForm.APPLY_BUTTON_LABEL, style=ButtonStyle.green, color=Color.green(), status=NethexForm.APPLY_BUTTON_STATUS)
+        super().__init__(label=NethexLang.APPLY_BUTTON_LABEL, style=ButtonStyle.green, color=Color.green(), status=NethexLang.APPLY_BUTTON_STATUS)
 
     async def memberProcess(self, interaction: Interaction, member: Member, embed: Embed, nickname: str):
         await member.send(embed=embed)
@@ -185,12 +185,12 @@ class NethexFormView(View):
 class NethexFormDenyModal(ModalTextBuilder):
 
     def __init__(self, member: Member, embed: Embed, nickname: str):
-        super().__init__(title=NethexForm.DENY_MODAL_TITLE.format(nickname))
+        super().__init__(title=NethexLang.DENY_MODAL_TITLE.format(nickname))
 
         self.reason = self.add(InputText(
             style=InputTextStyle.singleline,
-            value=NethexForm.DENY_MODAL_VALUE,
-            label=NethexForm.DENY_MODAL_LABEL,
+            value=NethexLang.DENY_MODAL_VALUE,
+            label=NethexLang.DENY_MODAL_LABEL,
             min_length=8,
             max_length=32
         ))
@@ -200,7 +200,7 @@ class NethexFormDenyModal(ModalTextBuilder):
 
     async def callback(self, interaction: Interaction):
         await interaction.response.defer()
-        self.embed.add_field(name=NethexForm.DENY_EMBED_FIELD_DENY_REASON, value=self.reason.value, inline=False)
+        self.embed.add_field(name=NethexLang.DENY_EMBED_FIELD_DENY_REASON, value=self.reason.value, inline=False)
         await interaction.message.edit(embed=self.embed)
         await self.member.send(embed=self.embed)
 
@@ -208,7 +208,7 @@ class NethexFormDenyModal(ModalTextBuilder):
 class NethexFormDenyButtonButton(NethexFormButton):
 
     def __init__(self):
-        super().__init__(label=NethexForm.DENY_BUTTON_TITLE, style=ButtonStyle.red, color=Color.red(), status=NethexForm.DENY_BUTTON_STATUS)
+        super().__init__(label=NethexLang.DENY_BUTTON_TITLE, style=ButtonStyle.red, color=Color.red(), status=NethexLang.DENY_BUTTON_STATUS)
 
     async def memberProcess(self, interaction: Interaction, member: Member, embed: Embed, nickname: str):
         await interaction.response.send_modal(NethexFormDenyModal(member, embed, nickname))
@@ -218,36 +218,36 @@ class NethexFormModal(ModalTextBuilder):
     MINECRAFT_NICKNAME_REGEX: ClassVar[str] = r'^[a-zA-Z0-9_]+$'
 
     def __init__(self, guild_id: int):
-        super().__init__(title=NethexForm.MODAL_TITLE)
+        super().__init__(title=NethexLang.MODAL_TITLE)
         self.guild_id = guild_id
 
         self.minecraft_nickname = self.add(InputText(
             style=InputTextStyle.singleline,
-            label=NethexForm.MODAL_MINECRAFT_NICKNAME_LABEL,
-            placeholder=NethexForm.MODAL_MINECRAFT_NICKNAME_PLACEHOLDER,
+            label=NethexLang.MODAL_MINECRAFT_NICKNAME_LABEL,
+            placeholder=NethexLang.MODAL_MINECRAFT_NICKNAME_PLACEHOLDER,
             min_length=3,
             max_length=16
         ))
 
         self.played_servers = self.add(InputText(
             style=InputTextStyle.multiline,
-            label=NethexForm.MODAL_PLAYED_SERVERS_LABEL,
-            placeholder=NethexForm.MODAL_PLAYER_SERVERS_PLACEHOLDER,
+            label=NethexLang.MODAL_PLAYED_SERVERS_LABEL,
+            placeholder=NethexLang.MODAL_PLAYER_SERVERS_PLACEHOLDER,
             min_length=10,
             max_length=200
         ))
 
         self.user_plannings = self.add(InputText(
             style=InputTextStyle.multiline,
-            label=NethexForm.MODAL_PLANNINGS_LABEL,
-            placeholder=NethexForm.MODAL_PLANNINGS_PLACEHOLDER,
+            label=NethexLang.MODAL_PLANNINGS_LABEL,
+            placeholder=NethexLang.MODAL_PLANNINGS_PLACEHOLDER,
             min_length=50,
             max_length=500
         ))
 
         self.etc = self.add(InputText(
             style=InputTextStyle.multiline,
-            label=NethexForm.MODAL_INFO_LABEL,
+            label=NethexLang.MODAL_INFO_LABEL,
             max_length=300,
             required=False
         ))
@@ -258,7 +258,7 @@ class NethexFormModal(ModalTextBuilder):
 
     async def callback(self, interaction: Interaction):
         if not self.checkNickname(self.minecraft_nickname.value):
-            await interaction.respond(NethexForm.MODAL_MINECRAFT_NICKNAME_CHECK_FAILED.format(self.minecraft_nickname.value))
+            await interaction.respond(NethexLang.MODAL_MINECRAFT_NICKNAME_CHECK_FAILED.format(self.minecraft_nickname.value))
             return
 
         embed = NethexFormEmbed(interaction, self)
@@ -268,7 +268,7 @@ class NethexFormModal(ModalTextBuilder):
 
     @staticmethod
     async def sendFormToUser(embed, interaction):
-        await interaction.user.send(content=NethexForm.MODAL_MESSAGE_SEND_TO_USER, embed=embed)
+        await interaction.user.send(content=NethexLang.MODAL_MESSAGE_SEND_TO_USER, embed=embed)
 
     async def sendFormInChannel(self, embed, interaction):
         from reqconfbot.cogs.nethex import NethexCog
@@ -276,16 +276,16 @@ class NethexFormModal(ModalTextBuilder):
 
     @staticmethod
     async def sendFormEphemeral(embed, interaction):
-        await interaction.respond(NethexForm.MODAL_MESSAGE_SEND_EPHEMERAL, ephemeral=True, embed=embed)
+        await interaction.respond(NethexLang.MODAL_MESSAGE_SEND_EPHEMERAL, ephemeral=True, embed=embed)
 
 
-class PanelCreatorView(View, ABC):
+class PanelCreatorLangView(View, ABC):
 
     def __init__(self):
         super().__init__(timeout=None)
         self.modal: Optional[Modal] = None
 
-    @ui.button(label=PanelCreator.VIEW_BUTTON_LABEL, style=ButtonStyle.green, custom_id="ViewSendModalRequest:view:button")
+    @ui.button(label=PanelCreatorLang.VIEW_BUTTON_LABEL, style=ButtonStyle.green, custom_id="ViewSendModalRequest:view:button")
     async def send_modal(self, _, interaction: Interaction):
         modal = self.getFormModal(interaction)
         await interaction.response.send_modal(modal)
@@ -295,6 +295,6 @@ class PanelCreatorView(View, ABC):
         pass
 
 
-class NethexPanelCreatorView(PanelCreatorView):
+class NethexPanelCreatorLangView(PanelCreatorLangView):
     def getFormModal(self, interaction: Interaction) -> Modal:
         return NethexFormModal(interaction.guild_id)

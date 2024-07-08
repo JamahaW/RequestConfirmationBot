@@ -8,19 +8,19 @@ from reqconfbot.databases import GuildJSONDatabase
 
 
 @dataclass
-class ForbiddenTeamGuild(BasicGuild):
+class ZapretnikiGuild(BasicGuild):
     coordinates_channel_id: int = None
 
     def getCoordinatedChannel(self, guild: Guild) -> TextChannel:
         return guild.get_channel(self.coordinates_channel_id)
 
 
-class ForbiddenTeamGuildDatabase(GuildJSONDatabase[ForbiddenTeamGuild]):
-    def _parse(self, data: dict) -> ForbiddenTeamGuild:
-        return ForbiddenTeamGuild(**data)
+class ZapretnikiDatabase(GuildJSONDatabase[ZapretnikiGuild]):
+    def _parse(self, data: dict) -> ZapretnikiGuild:
+        return ZapretnikiGuild(**data)
 
     def _getJSONFileName(self) -> str:
         return "forbidden_team"
 
-    def _createGuildData(self, guild_id: int) -> ForbiddenTeamGuild:
-        return ForbiddenTeamGuild(guild_id)
+    def _createGuildData(self, guild_id: int) -> ZapretnikiGuild:
+        return ZapretnikiGuild(guild_id)

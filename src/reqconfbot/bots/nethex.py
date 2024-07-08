@@ -4,8 +4,8 @@ from discord.ui import View
 
 from reqconfbot.bots.custombot import CustomBot
 from reqconfbot.cogs.nethex import NethexCog
-from reqconfbot.legacy_nethex_form import NethexFormView
-from reqconfbot.legacy_nethex_form import NethexPanelCreatorView
+from reqconfbot.cogs.legacy_nethex_form import NethexFormView
+from reqconfbot.cogs.legacy_nethex_form import NethexPanelCreatorView
 from reqconfbot.utils.tools import Environment
 
 

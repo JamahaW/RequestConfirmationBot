@@ -1,7 +1,6 @@
 from enum import Enum
 from enum import auto
 from pathlib import Path
-from typing import ClassVar
 from typing import Optional
 
 from discord import ApplicationContext
@@ -18,7 +17,7 @@ from discord.ext.commands import Cog
 from discord.ext.commands import has_permissions
 from discord.ext.commands import slash_command
 
-from reqconfbot.databases.forbiddenteam import ForbiddenTeamGuildDatabase
+from reqconfbot.databases.zapretniki import ZapretnikiDatabase
 from reqconfbot.utils.tools import ErrorsTyper
 
 
@@ -37,6 +36,14 @@ class MinecraftDimensionType(Enum):
     def getName(self) -> str:
         return self.name.capitalize()
 
+    def getColor(self) -> Color:
+        colors: dict[MinecraftDimensionType, Color] = {
+            MinecraftDimensionType.OVERWORLD: Color.brand_green(),
+            MinecraftDimensionType.NETHER: Color.red(),
+            MinecraftDimensionType.END: Color.nitro_pink()
+        }
+        return colors[self]
+
 
 class MinecraftCoordinates:
 
@@ -48,19 +55,13 @@ class MinecraftCoordinates:
         if y is None:
             y = "~"
 
-        self.string = f"```fix\n{x} {y} {z}\n```"
+        self.__string = f"```fix\n{x} {y} {z}\n```"
+
+    def __str__(self) -> str:
+        return self.__string
 
 
 class MinecraftCoordinatesEmbed(Embed):
-    DIMENSIONS_COLORS: ClassVar[dict[MinecraftDimensionType, Color]] = {
-        MinecraftDimensionType.OVERWORLD: Color.brand_green(),
-        MinecraftDimensionType.NETHER: Color.red(),
-        MinecraftDimensionType.END: Color.nitro_pink()
-    }
-
-    @classmethod
-    def getDimensionColor(cls, dimension: MinecraftDimensionType) -> Color:
-        return cls.DIMENSIONS_COLORS[dimension]
 
     def __init__(
             self,
@@ -71,11 +72,11 @@ class MinecraftCoordinatesEmbed(Embed):
             screenshot: Optional[Attachment]
     ):
         super().__init__(
-            color=self.getDimensionColor(dimension),
+            color=dimension.getColor(),
             title=place_name.capitalize(),
             footer=SuggestedUserEmbedFooter(user)
         )
-        self.add_field(name=dimension.name.capitalize(), value=coords.string)
+        self.add_field(name=dimension.name.capitalize(), value=coords.__str__())
 
         if screenshot is not None:
             self.image = EmbedMedia(screenshot.url)
@@ -85,7 +86,7 @@ class ForbiddenCog(Cog):
 
     def __init__(self, bot: Bot, databases_folder: Path):
         self.bot = bot
-        self.database = ForbiddenTeamGuildDatabase(databases_folder)
+        self.database = ZapretnikiDatabase(databases_folder)
 
     @slash_command(name="coords")
     async def sendCoords(
@@ -107,7 +108,7 @@ class ForbiddenCog(Cog):
 
         coords_channel = context.guild.get_channel(coords_channel_id)
         await context.respond(f"Координаты отправлены в канал {coords_channel.jump_url}", ephemeral=True)
-        await coords_channel.send(embed=(MinecraftCoordinatesEmbed(dimension, name, context.user, MinecraftCoordinates(x, y, z, rounding), screenshot)))
+        await coords_channel.send(embed=MinecraftCoordinatesEmbed(dimension, name, context.user, MinecraftCoordinates(x, y, z, rounding), screenshot))
 
     @slash_command(name="coords_set_channel")
     @has_permissions(administrator=True)

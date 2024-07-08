@@ -1,4 +1,4 @@
-class PanelCreator:
+class PanelCreatorLang:
     MODAL_TITLE = "Создать новое сообщение отправки заявок"
     MODAL_AUTHOR_LABEL = "Автор"
     MODAL_AUTHOR_PLACEHOLDER = "Команда любителей занавесок"
