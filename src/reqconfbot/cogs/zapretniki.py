@@ -22,6 +22,13 @@ from reqconfbot.databases.forbiddenteam import ForbiddenTeamGuildDatabase
 from reqconfbot.utils.tools import ErrorsTyper
 
 
+class SuggestedUserEmbedFooter(EmbedFooter):
+    FOOTER_TEXT = "Предложил {0}"
+
+    def __init__(self, user: User) -> None:
+        super().__init__(self.FOOTER_TEXT.format(user.name), user.avatar)
+
+
 class MinecraftDimensionType(Enum):
     OVERWORLD = auto()
     NETHER = auto()
@@ -31,12 +38,20 @@ class MinecraftDimensionType(Enum):
         return self.name.capitalize()
 
 
-_coords_type = tuple[int, Optional[int], int]
+class MinecraftCoordinates:
+
+    def __init__(self, x: int, y: Optional[int], z: int, rounding: bool) -> None:
+        if rounding:
+            x = round(x, -1)
+            z = round(z, -1)
+
+        if y is None:
+            y = "~"
+
+        self.string = f"```fix\n{x} {y} {z}\n```"
 
 
 class MinecraftCoordinatesEmbed(Embed):
-    INTEND = 5
-
     DIMENSIONS_COLORS: ClassVar[dict[MinecraftDimensionType, Color]] = {
         MinecraftDimensionType.OVERWORLD: Color.brand_green(),
         MinecraftDimensionType.NETHER: Color.red(),
@@ -47,40 +62,20 @@ class MinecraftCoordinatesEmbed(Embed):
     def getDimensionColor(cls, dimension: MinecraftDimensionType) -> Color:
         return cls.DIMENSIONS_COLORS[dimension]
 
-    @classmethod
-    def formatCoord(cls, value: str) -> str:
-        return f"{value:<{cls.INTEND}}"
-
-    @staticmethod
-    def getCoordString(value: int, rounding: bool) -> str:
-        if value is None:
-            return "~"
-
-        return f"{round(value, -1) if rounding else value}"
-
-    @classmethod
-    def getCoordinatesString(cls, coords: _coords_type, rounding: bool) -> str:
-        x, y, z = coords
-        x = cls.formatCoord(cls.getCoordString(x, rounding))
-        y = cls.formatCoord(cls.getCoordString(y, False))
-        z = cls.formatCoord(cls.getCoordString(z, rounding))
-        return f"```fix\n{x} {y} {z}\n```"
-
     def __init__(
-            self, *,
+            self,
             dimension: MinecraftDimensionType,
             place_name: str,
-            suggested_user: User,
-            coords: _coords_type,
-            rounding: bool,
+            user: User,
+            coords: MinecraftCoordinates,
             screenshot: Optional[Attachment]
     ):
         super().__init__(
             color=self.getDimensionColor(dimension),
             title=place_name.capitalize(),
-            footer=EmbedFooter(suggested_user.name, suggested_user.avatar.url)
+            footer=SuggestedUserEmbedFooter(user)
         )
-        self.add_field(name=dimension.name.capitalize(), value=self.getCoordinatesString(coords, rounding))
+        self.add_field(name=dimension.name.capitalize(), value=coords.string)
 
         if screenshot is not None:
             self.image = EmbedMedia(screenshot.url)
@@ -90,7 +85,7 @@ class ForbiddenCog(Cog):
 
     def __init__(self, bot: Bot, databases_folder: Path):
         self.bot = bot
-        self.database: ForbiddenTeamGuildDatabase = ForbiddenTeamGuildDatabase(databases_folder)
+        self.database = ForbiddenTeamGuildDatabase(databases_folder)
 
     @slash_command(name="coords")
     async def sendCoords(
@@ -104,22 +99,15 @@ class ForbiddenCog(Cog):
             rounding: Option(bool, "Округление", default=True),
             screenshot: Option(Attachment, required=False)
     ):
-        err = ErrorsTyper()
-        coords_channel = self.database.get(context.guild_id).coordinates_channel_id
-
-        if coords_channel is None:
+        if (coords_channel_id := self.database.get(context.guild_id).coordinates_channel_id) is None:
+            err = ErrorsTyper()
             err.add("Канал для вывода координат ещё не настроен")
             await err.respond(context)
             return
 
-        if context.channel.id != coords_channel:
-            err.add("В этом канале нельзя выводить координаты")
-            await err.respond(context)
-            return
-
-        embed = MinecraftCoordinatesEmbed(dimension=dimension, place_name=name, suggested_user=context.user, coords=(x, y, z), rounding=rounding, screenshot=screenshot)
-        await context.respond("готово", ephemeral=True)
-        await context.send(embed=embed)
+        coords_channel = context.guild.get_channel(coords_channel_id)
+        await context.respond(f"Координаты отправлены в канал {coords_channel.jump_url}", ephemeral=True)
+        await coords_channel.send(embed=(MinecraftCoordinatesEmbed(dimension, name, context.user, MinecraftCoordinates(x, y, z, rounding), screenshot)))
 
     @slash_command(name="coords_set_channel")
     @has_permissions(administrator=True)

@@ -8,7 +8,6 @@ from typing import Optional
 
 from discord import Bot
 from discord import Intents
-from discord import Message
 from discord.ui import View
 
 
@@ -30,10 +29,6 @@ class CustomBot(Bot, ABC):
 
             self.__persistent_views_added = True
             self.logger.info("persistent_views_added")
-
-    async def on_message(self, message: Message):
-        if message.author.bot:
-            return
 
     @abstractmethod
     def getPersistentViews(self) -> Iterable[View]:

@@ -3,11 +3,11 @@ from typing import Iterable
 from discord.ui import View
 
 from reqconfbot.bots.custombot import CustomBot
-from reqconfbot.cogs.forbiddenteam import ForbiddenCog
+from reqconfbot.cogs.zapretniki import ForbiddenCog
 from reqconfbot.utils.tools import Environment
 
 
-class ForbiddenBot(CustomBot):
+class ZapretnikiBot(CustomBot):
     def getPersistentViews(self) -> Iterable[View]:
         return tuple[View]()
 

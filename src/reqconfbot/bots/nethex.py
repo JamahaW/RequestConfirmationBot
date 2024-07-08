@@ -1,4 +1,3 @@
-from pathlib import Path
 from typing import Iterable
 
 from discord.ui import View
@@ -7,6 +6,7 @@ from reqconfbot.bots.custombot import CustomBot
 from reqconfbot.cogs.nethex import NethexCog
 from reqconfbot.legacy_nethex_form import NethexFormView
 from reqconfbot.legacy_nethex_form import NethexPanelCreatorView
+from reqconfbot.utils.tools import Environment
 
 
 class NethexBot(CustomBot):
@@ -17,6 +17,6 @@ class NethexBot(CustomBot):
             NethexFormView()
         )
 
-    def __init__(self, prefix: str, json_database_folder: Path):
-        super().__init__(prefix)
-        self.add_cog(NethexCog(self, json_database_folder))
+    def __init__(self, env: Environment):
+        super().__init__(env.prefix)
+        self.add_cog(NethexCog(self, env.databases_folder))
