@@ -12,7 +12,7 @@ from discord.ext.commands import slash_command
 
 from reqconfbot.databases.nethex import NethexGuild
 from reqconfbot.databases.nethex import NethexJsonDatabase
-from reqconfbot.cogs.legacy_nethex_form import PanelCreatorModal
+from reqconfbot.special.legacy_nethex_form import PanelCreatorModal
 from reqconfbot.utils.tools import ErrorsTyper
 
 

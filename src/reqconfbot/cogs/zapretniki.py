@@ -29,9 +29,14 @@ class ZapretnikiCog(Cog):
         self.bot = bot
         self.database = ZapretnikiDatabase(databases_folder)
 
-    async def __setOutputChannel(self, context: ApplicationContext, channel: TextChannel, speciality: str, setter: Callable[[ZapretnikiGuild, int], None]):
-        setter(self.__getGuildData(context), channel.id)
-        await context.respond(f"{speciality} будут отправляться в {channel.jump_url}", ephemeral=True)
+    async def __updateID(self, context: ApplicationContext, entity: TextChannel | Role, e_name: str, setter: Callable[[ZapretnikiGuild, int], None]):
+        try:
+            setter(self.__getGuildData(context), entity.id)
+        except Exception as e:
+            await self.__sendErrorImmediately(context, f"{e}")
+            return
+
+        await context.respond(f"{e_name} `{entity.name}`", ephemeral=True)
         self.database.dump()
 
     def __getGuildData(self, context: ApplicationContext) -> ZapretnikiGuild:
@@ -39,16 +44,26 @@ class ZapretnikiCog(Cog):
 
     @slash_command(name="coords_set_channel")
     @has_permissions(administrator=True)
-    async def setCoordsChannel(self, context: ApplicationContext, channel: TextChannel):
-        await self.__setOutputChannel(context, channel, "Координаты", ZapretnikiGuild.setCoordinatesChannelID)
+    async def __setCoordsChannel(self, context: ApplicationContext, channel: TextChannel):
+        await self.__updateID(context, channel, "Отправлять координаты", ZapretnikiGuild.setCoordinatesChannelID)
 
     @slash_command(name="tasks_set_channel")
     @has_permissions(administrator=True)
-    async def setTasksChannel(self, context: ApplicationContext, channel: TextChannel, ):
-        await self.__setOutputChannel(context, channel, "Задания", ZapretnikiGuild.setTasksChannelID)
+    async def __setTasksChannel(self, context: ApplicationContext, channel: TextChannel):
+        await self.__updateID(context, channel, "Отправлять Задания", ZapretnikiGuild.setTasksChannelID)
+
+    @slash_command(name="tasks_speciality_role_add")
+    @has_permissions(administrator=True)
+    async def __addSpecialityRole(self, context: ApplicationContext, role: Role):
+        await self.__updateID(context, role, "Специальность добавлена", ZapretnikiGuild.addSpecialityRoleID)
+
+    @slash_command(name="tasks_speciality_role_remove")
+    @has_permissions(administrator=True)
+    async def __removeSpecialityRole(self, context: ApplicationContext, role: Role):
+        await self.__updateID(context, role, "Специальность удалена", ZapretnikiGuild.removeSpecialityRoleID)
 
     @slash_command(name="coords")
-    async def sendCoords(
+    async def __sendCoords(
             self, context: ApplicationContext,
             name: Option(str, "Название позиции"),
             dimension: Option(Dimension, "Измерение"),
@@ -84,11 +99,18 @@ class ZapretnikiCog(Cog):
         return context.guild.get_channel(channel_id)
 
     @slash_command(name="task")
-    async def addTask(self, context: ApplicationContext, role: Option(Role, "Для какой специализации эта задача"), text: str):
+    async def __addTask(self, context: ApplicationContext, role: Option(Role, "Для какой специализации эта задача"), text: str):
         data = self.__getGuildData(context)
+        err = ErrorsTyper()
 
         if data.tasks_channel_id is None:
-            await self.__sendErrorImmediately(context, "Канал для вывода заданий ещё не настроен")
+            err.add("Канал для вывода заданий ещё не настроен")
+
+        if role.id not in data.speciality_role_ids:
+            err.add(f"Роль {role.mention} не является специальностью")
+
+        if err.isFailed():
+            await err.respond(context)
             return
 
         await self.__sendEmbedMessage(context, data.tasks_channel_id, TaskEmbed(context.user, role, text), "Задание отправлено", TaskView())
